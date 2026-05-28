@@ -1,6 +1,7 @@
 
 import express from "express";
 import dotenv from "dotenv";
+import cors from "cors";
 import fs from "fs";
 import path from "path";
 
@@ -8,6 +9,13 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.use(cors({
+  origin: [
+    "https://harbert.22miles.net",
+    "https://asif-stock-feed.onrender.com"
+  ]
+}));
 
 app.use(express.json());
 app.use(express.static("public"));

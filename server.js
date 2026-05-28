@@ -1,95 +1,139 @@
+
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import dotenv from "dotenv";
+import fs from "fs";
+import path from "path";
 
 dotenv.config();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const app = express();
 const PORT = process.env.PORT || 3000;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4.1-mini";
 
-const ALLOWED_SYMBOLS = [
-  "AMZN", "GOLD", "COST", "DE", "LLY", "EQT", "LIN", "MSFT", "ORCL",
-  "PHYS", "PSLV", "WM", "UBER", "SGDJ", "AVGO", "HCA", "PEP"
+app.use(express.json());
+app.use(express.static("public"));
+
+const SYMBOLS = [
+  'AMZN','GOLD','COST','DE','LLY','EQT','LIN',
+  'MSFT','ORCL','PHYS','PSLV','WM','UBER',
+  'SGDJ','AVGO','HCA','PEP'
 ];
 
-app.use(express.json({ limit: "32kb" }));
-app.use(express.static(path.join(__dirname, "public")));
+const DATA_DIR = path.join(process.cwd(), "public", "data");
+const STOCKS_FILE = path.join(DATA_DIR, "stocks.json");
+
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR, { recursive: true });
+}
+
+async function fetchStockData(symbols) {
+  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
+    },
+    body: JSON.stringify({
+      model: "gpt-4.1-mini",
+      temperature: 0,
+      messages: [
+        {
+          role: "user",
+          content: `Return ONLY a valid JSON array (no markdown) with latest stock data for: ${symbols.join(", ")}.
+
+Each object must contain:
+symbol, price, open, volume, change, changePct
+
+Example:
+[{"symbol":"AMZN","price":185.42,"open":183.10,"volume":23450000,"change":2.32,"changePct":1.27}]`
+        }
+      ]
+    })
+  });
+
+  if (!response.ok) {
+    const txt = await response.text();
+    console.error(txt);
+    throw new Error("OpenAI API request failed.");
+  }
+
+  const data = await response.json();
+
+  const text = data.choices?.[0]?.message?.content || "";
+  const clean = text.replace(/```json|```/g, "").trim();
+
+  const match = clean.match(/\[[\s\S]*\]/);
+
+  if (!match) {
+    throw new Error("No JSON returned.");
+  }
+
+  return JSON.parse(match[0]);
+}
 
 app.post("/api/stock-feed", async (req, res) => {
   try {
-    if (!OPENAI_API_KEY) {
-      return res.status(500).json({ error: "Missing OPENAI_API_KEY environment variable." });
-    }
+    const symbols = req.body.symbols || SYMBOLS;
 
-    const requestedSymbols = Array.isArray(req.body?.symbols) ? req.body.symbols : ALLOWED_SYMBOLS;
-    const symbols = requestedSymbols
-      .map((symbol) => String(symbol).trim().toUpperCase())
-      .filter((symbol) => ALLOWED_SYMBOLS.includes(symbol));
+    const parsedData = await fetchStockData(symbols);
 
-    if (!symbols.length) {
-      return res.status(400).json({ error: "No valid stock symbols were provided." });
-    }
+    const payload = {
+      updatedAt: new Date().toISOString(),
+      symbols,
+      data: parsedData
+    };
 
-    const prompt = `Return ONLY a valid JSON array with the latest available stock market data for these symbols: ${symbols.join(", ")}.
+    fs.writeFileSync(
+      STOCKS_FILE,
+      JSON.stringify(payload, null, 2)
+    );
 
-Each object must contain these keys exactly:
-symbol, price, open, volume, change, changePct
+    res.json(payload);
 
-Use numbers for numeric values. If a symbol is unavailable, use null for numeric values.
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      error: "Failed to fetch stock data"
+    });
+  }
+});
 
-Example:
-[{"symbol":"AMZN","price":185.42,"open":183.10,"volume":23450000,"change":2.32,"changePct":1.27}]`;
+app.get("/data/stocks.json", (req, res) => {
+  if (!fs.existsSync(STOCKS_FILE)) {
+    return res.status(404).json({
+      error: "stocks.json has not been created yet"
+    });
+  }
 
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: OPENAI_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0
-      })
+  res.sendFile(STOCKS_FILE);
+});
+
+app.get("/api/refresh", async (req, res) => {
+  try {
+    const parsedData = await fetchStockData(SYMBOLS);
+
+    const payload = {
+      updatedAt: new Date().toISOString(),
+      symbols: SYMBOLS,
+      data: parsedData
+    };
+
+    fs.writeFileSync(
+      STOCKS_FILE,
+      JSON.stringify(payload, null, 2)
+    );
+
+    res.json({
+      success: true,
+      updatedAt: payload.updatedAt
     });
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("OpenAI API error:", data);
-      return res.status(response.status).json({ error: "OpenAI API request failed." });
-    }
-
-    const text = data.choices?.[0]?.message?.content || "";
-    const clean = text.replace(/```json|```/g, "").trim();
-    const match = clean.match(/\[[\s\S]*\]/);
-
-    if (!match) {
-      console.error("Unexpected OpenAI response:", text);
-      return res.status(502).json({ error: "No JSON array found in OpenAI response." });
-    }
-
-    let parsed;
-    try {
-      parsed = JSON.parse(match[0]);
-    } catch (err) {
-      console.error("JSON parse error:", err, text);
-      return res.status(502).json({ error: "Could not parse stock data response." });
-    }
-
-    res.json(parsed);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Failed to fetch stock data." });
+  } catch (error) {
+    res.status(500).json({
+      error: "Refresh failed"
+    });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`Auburn Market Watch running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

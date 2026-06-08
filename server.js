@@ -108,7 +108,7 @@ No markdown. No explanation.`
   return parsed.map(stock => ({
     ...stock,
     symbol: String(stock.symbol).toUpperCase(),
-    image: `https://harbert.auburn.edu/binaries/images/centers/investment-center/${String(stock.symbol).toUpperCase()}.png`
+    image: `https://harbert.auburn.edu/binaries/images/centers/investment-center/${String(stock.symbol).toLowerCase()}.png`
   }));
 }
 

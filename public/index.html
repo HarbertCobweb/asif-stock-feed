@@ -59,6 +59,19 @@ td:first-child{
   opacity:.7;
 }
 
+.logo-cell{
+  display:flex;
+  align-items:center;
+  gap:.75rem;
+}
+
+.logo{
+  width:48px;
+  height:48px;
+  object-fit:contain;
+  flex-shrink:0;
+}
+
 @media(max-width:700px){
   th,td{
     padding:.65rem;
@@ -81,7 +94,7 @@ td:first-child{
     <table>
       <thead>
         <tr>
-          <th>Symbol</th>
+          <th>Holding</th>
           <th>Price</th>
           <th>Open</th>
           <th>Volume</th>
@@ -119,7 +132,18 @@ async function loadData(){
 
     tbody.innerHTML += `
       <tr>
-        <td>${stock.symbol}</td>
+        <td>
+  <div class="logo-cell">
+    <img
+      class="logo"
+      src="${stock.image}"
+      alt="${stock.symbol}"
+      loading="lazy"
+      onerror="this.style.display='none'"
+    >
+    <span>${stock.symbol}</span>
+  </div>
+</td>
         <td>$${Number(stock.price).toFixed(2)}</td>
         <td>$${Number(stock.open).toFixed(2)}</td>
         <td>${Number(stock.volume).toLocaleString()}</td>

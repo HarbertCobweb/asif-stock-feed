@@ -51,6 +51,7 @@ function stockDataToIxml(payload) {
   ${rows.map(stock => `
   <item>
     <symbol>${escapeXml(stock.symbol)}</symbol>
+    <image>${escapeXml(stock.image)}</image>
     <price>${escapeXml(stock.price)}</price>
     <open>${escapeXml(stock.open)}</open>
     <volume>${escapeXml(stock.volume)}</volume>
@@ -102,7 +103,13 @@ No markdown. No explanation.`
     throw new Error("No JSON array found in OpenAI response.");
   }
 
-  return JSON.parse(match[0]);
+  const parsed = JSON.parse(match[0]);
+
+  return parsed.map(stock => ({
+    ...stock,
+    symbol: String(stock.symbol).toUpperCase(),
+    image: `https://harbert.auburn.edu/binaries/images/centers/investment-center/${String(stock.symbol).toUpperCase()}.png`
+  }));
 }
 
 app.post("/api/stock-feed", async (req, res) => {

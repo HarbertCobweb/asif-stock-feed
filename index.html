@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ASIF Market Feed</title>
+
+<style>
+:root{
+  --navy:#0c2340;
+  --navy-dark:#06172d;
+  --orange:#e87722;
+  --white:#ffffff;
+  --muted:rgba(255,255,255,.72);
+  --line:rgba(255,255,255,.14);
+  --green:#36d47b;
+  --red:#ff5b5b;
+}
+
+*{box-sizing:border-box}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--navy);
+  color:white;
+}
+
+body{
+  background:
+    radial-gradient(circle at 12% 18%, rgba(232,119,34,.32), transparent 28%),
+    linear-gradient(135deg,var(--navy-dark),var(--navy) 60%,#030b16);
+}
+
+.screen{
+  width:100vw;
+  height:100vh;
+  aspect-ratio:16/9;
+  padding:clamp(28px,4vw,70px);
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:clamp(20px,2.5vw,44px);
+}
+
+.header{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:2rem;
+}
+
+.kicker{
+  color:var(--orange);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-weight:900;
+  font-size:clamp(15px,1.2vw,24px);
+}
+
+h1{
+  margin:.25rem 0 0;
+  font-size:clamp(52px,5.4vw,112px);
+  line-height:.9;
+  letter-spacing:-.06em;
+}
+
+.updated{
+  color:var(--muted);
+  font-size:clamp(16px,1.4vw,28px);
+  white-space:nowrap;
+}
+
+.table-wrap{
+  min-height:0;
+  overflow:hidden;
+  border-radius:34px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
+  box-shadow:0 32px 90px rgba(0,0,0,.35);
+}
+
+.table-head{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1.2fr 1.2fr;
+  padding:clamp(16px,1.4vw,28px) clamp(22px,2vw,40px);
+  background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.62);
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  font-size:clamp(12px,1vw,18px);
+  font-weight:900;
+}
+
+.table-head div:not(:first-child){
+  text-align:right;
+}
+
+.viewport{
+  height:calc(100% - clamp(52px,5vw,92px));
+  overflow:hidden;
+}
+
+.track{
+  will-change:transform;
+}
+
+.row{
+  display:grid;
+  grid-template-columns:2fr 1fr 1fr 1.2fr 1.2fr;
+  align-items:center;
+  min-height:calc((100vh - 260px) / 6);
+  padding:clamp(16px,1.35vw,28px) clamp(22px,2vw,40px);
+  border-bottom:1px solid var(--line);
+  font-size:clamp(22px,2vw,42px);
+}
+
+.holding{
+  display:flex;
+  align-items:center;
+  gap:clamp(16px,1.5vw,28px);
+  min-width:0;
+}
+
+.logo{
+  width:clamp(54px,4.4vw,92px);
+  height:clamp(54px,4.4vw,92px);
+  object-fit:contain;
+  flex:0 0 auto;
+  background:white;
+  border-radius:18px;
+  padding:8px;
+}
+
+.symbol{
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+.value{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  font-weight:800;
+}
+
+.volume{
+  color:rgba(255,255,255,.78);
+}
+
+.pos{color:var(--green)}
+.neg{color:var(--red)}
+
+.footer{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  color:var(--muted);
+  font-size:clamp(14px,1.1vw,22px);
+  border-top:1px solid var(--line);
+  padding-top:18px;
+}
+
+.footer strong{
+  color:white;
+}
+
+.error{
+  padding:3rem;
+  font-size:clamp(24px,3vw,54px);
+}
+
+@media(max-width:900px){
+  .screen{padding:24px}
+  .header{align-items:flex-start;flex-direction:column}
+  .table-head,
+  .row{
+    grid-template-columns:1.5fr 1fr 1fr;
+  }
+  .table-head div:nth-child(3),
+  .table-head div:nth-child(4),
+  .row .hide-small{
+    display:none;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="screen">
+  <header class="header">
+    <div>
+      <div class="kicker">Auburn Student Investment Fund</div>
+      <h1>Market Feed</h1>
+    </div>
+    <div class="updated" id="updated">Loading…</div>
+  </header>
+
+  <main class="table-wrap">
+    <div class="table-head">
+      <div>Holding</div>
+      <div>Price</div>
+      <div class="hide-small">Open</div>
+      <div class="hide-small">Volume</div>
+      <div>Change</div>
+    </div>
+
+    <div class="viewport" id="viewport">
+      <div class="track" id="track"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div><strong>Auburn University</strong> Harbert College of Business</div>
+    <div>Data refreshes from cached market feed</div>
+  </footer>
+</div>
+
+<script>
+const ROWS_VISIBLE = 6;
+const PAGE_SECONDS = 9;
+const TRANSITION_SECONDS = 2.2;
+
+function money(value){
+  const num = Number(value);
+  return Number.isFinite(num) ? "$" + num.toFixed(2) : "—";
+}
+
+function volume(value){
+  const num = Number(value);
+  if(!Number.isFinite(num)) return "—";
+  if(num >= 1e9) return (num / 1e9).toFixed(2) + "B";
+  if(num >= 1e6) return (num / 1e6).toFixed(2) + "M";
+  if(num >= 1e3) return (num / 1e3).toFixed(1) + "K";
+  return num.toLocaleString();
+}
+
+function changeText(stock){
+  const change = Number(stock.change);
+  const pct = Number(stock.changePct);
+  if(!Number.isFinite(change) || !Number.isFinite(pct)) return "—";
+  const sign = change >= 0 ? "+" : "";
+  return `${sign}${change.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
+}
+
+function buildRow(stock){
+  const cls = Number(stock.change) >= 0 ? "pos" : "neg";
+
+  return `
+    <div class="row">
+      <div class="holding">
+        <img
+          class="logo"
+          src="${stock.image || ""}"
+          alt=""
+          onerror="this.style.visibility='hidden'"
+        >
+        <div class="symbol">${stock.symbol || "—"}</div>
+      </div>
+      <div class="value">${money(stock.price)}</div>
+      <div class="value hide-small">${money(stock.open)}</div>
+      <div class="value volume hide-small">${volume(stock.volume)}</div>
+      <div class="value ${cls}">${changeText(stock)}</div>
+    </div>
+  `;
+}
+
+function startPaging(){
+  const track = document.getElementById("track");
+  const rows = Array.from(track.querySelectorAll(".row"));
+
+  if(rows.length <= ROWS_VISIBLE) return;
+
+  const rowHeight = rows[0].offsetHeight;
+  const totalOriginalRows = rows.length / 2;
+  let page = 0;
+
+  setInterval(() => {
+    page++;
+
+    const offsetRows = page * ROWS_VISIBLE;
+    track.style.transition = `transform ${TRANSITION_SECONDS}s ease-in-out`;
+    track.style.transform = `translateY(-${offsetRows * rowHeight}px)`;
+
+    if(offsetRows >= totalOriginalRows){
+      setTimeout(() => {
+        track.style.transition = "none";
+        track.style.transform = "translateY(0)";
+        page = 0;
+      }, TRANSITION_SECONDS * 1000 + 80);
+    }
+  }, PAGE_SECONDS * 1000);
+}
+
+async function loadData(){
+  const res = await fetch("/data/stocks.json?cache=" + Date.now());
+
+  if(!res.ok){
+    document.getElementById("track").innerHTML =
+      `<div class="error">No stock data cached yet. Visit /api/refresh first.</div>`;
+    return;
+  }
+
+  const json = await res.json();
+  const stocks = json.data || [];
+
+  document.getElementById("updated").textContent =
+    "Updated " + new Date(json.updatedAt).toLocaleTimeString([], {
+      hour:"numeric",
+      minute:"2-digit"
+    });
+
+  const track = document.getElementById("track");
+
+  const rowsHtml = stocks.map(buildRow).join("");
+
+  /*
+    Duplicate rows so the scroll can reset invisibly.
+    This creates the seamless loop.
+  */
+  track.innerHTML = rowsHtml + rowsHtml;
+
+  requestAnimationFrame(startPaging);
+}
+
+loadData();
+</script>
+</body>
+</html>

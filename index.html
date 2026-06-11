@@ -294,13 +294,13 @@ function startPaging(){
 }
 
 async function loadData(){
-  const res = await fetch("feeds/stock-feed.json?cache=" + Date.now());
+  const res = await fetch("https://harbertcobweb.github.io/asif-stock-feed/feeds/stock-feed.json?cache=" + Date.now());
 
   if(!res.ok){
-    document.getElementById("track").innerHTML =
-      `<div class="error">No stock data cached yet. Visit /api/refresh first.</div>`;
-    return;
-  }
+  document.getElementById("track").innerHTML =
+    `<div class="error">Could not load stock-feed.json. Status: ${res.status}</div>`;
+  return;
+}
 
   const json = await res.json();
   const stocks = json.data || [];

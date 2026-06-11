@@ -112,6 +112,105 @@ No markdown. No explanation.`
   }));
 }
 
+async function getGithubFileSha(filePath) {
+  const owner = process.env.GITHUB_OWNER;
+  const repo = process.env.GITHUB_REPO;
+  const branch = process.env.GITHUB_BRANCH || "main";
+  const token = process.env.GITHUB_TOKEN;
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}?ref=${branch}`;
+
+  const response = await fetch(url, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json"
+    }
+  });
+
+  if (response.status === 404) return null;
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`GitHub SHA lookup failed: ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.sha;
+}
+
+async function publishToGithub(filePath, content, commitMessage) {
+  const owner = process.env.GITHUB_OWNER;
+  const repo = process.env.GITHUB_REPO;
+  const branch = process.env.GITHUB_BRANCH || "main";
+  const token = process.env.GITHUB_TOKEN;
+
+  if (!owner || !repo || !token) {
+    console.warn("GitHub publishing skipped. Missing GitHub environment variables.");
+    return null;
+  }
+
+  const sha = await getGithubFileSha(filePath);
+
+  const body = {
+    message: commitMessage,
+    content: Buffer.from(content).toString("base64"),
+    branch
+  };
+
+  if (sha) {
+    body.sha = sha;
+  }
+
+  const url = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`GitHub publish failed for ${filePath}: ${errorText}`);
+  }
+
+  console.log(`Published ${filePath} to GitHub`);
+  return true;
+}
+
+async function refreshStockFeed() {
+  const parsedData = await fetchStockData(SYMBOLS);
+
+  const payload = {
+    updatedAt: new Date().toISOString(),
+    symbols: SYMBOLS,
+    data: parsedData
+  };
+
+  const json = JSON.stringify(payload, null, 2);
+  const xml = stockDataToIxml(payload);
+
+  fs.writeFileSync(STOCKS_JSON_FILE, json);
+
+  await publishToGithub(
+    process.env.OUTPUT_JSON_PATH || "feeds/stock-feed.json",
+    json,
+    `Update stock JSON feed - ${payload.updatedAt}`
+  );
+
+  await publishToGithub(
+    process.env.OUTPUT_XML_PATH || "feeds/stock-feed.xml",
+    xml,
+    `Update stock XML feed - ${payload.updatedAt}`
+  );
+
+  return payload;
+}
+
 app.post("/api/stock-feed", async (req, res) => {
   try {
     const symbols = req.body.symbols || SYMBOLS;
@@ -136,21 +235,15 @@ app.post("/api/stock-feed", async (req, res) => {
 
 app.get("/api/refresh", async (req, res) => {
   try {
-    const parsedData = await fetchStockData(SYMBOLS);
-
-    const payload = {
-      updatedAt: new Date().toISOString(),
-      symbols: SYMBOLS,
-      data: parsedData
-    };
-
-    fs.writeFileSync(STOCKS_JSON_FILE, JSON.stringify(payload, null, 2));
+    const payload = await refreshStockFeed();
 
     res.json({
       success: true,
       updatedAt: payload.updatedAt,
-      jsonUrl: "/data/stocks.json",
-      ixmlUrl: "/data/stocks.ixml"
+      renderJsonUrl: "/data/stocks.json",
+      renderIxmlUrl: "/data/stocks.ixml",
+      githubJsonPath: process.env.OUTPUT_JSON_PATH || "feeds/stock-feed.json",
+      githubXmlPath: process.env.OUTPUT_XML_PATH || "feeds/stock-feed.xml"
     });
   } catch (error) {
     console.error(error);

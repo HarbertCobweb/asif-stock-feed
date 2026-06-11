@@ -294,7 +294,7 @@ function startPaging(){
 }
 
 async function loadData(){
-  const res = await fetch("/data/stocks.json?cache=" + Date.now());
+  const res = await fetch("feeds/stock-feed.json?cache=" + Date.now());
 
   if(!res.ok){
     document.getElementById("track").innerHTML =

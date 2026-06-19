@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-06-18T21:02:34.515Z",
+  "updatedAt": "2026-06-19T12:00:41.788Z",
   "symbols": [
     "AMZN",
     "GOLD",
@@ -60,7 +60,7 @@
       "symbol": "LLY",
       "price": 320.78,
       "open": 318,
-      "volume": 2500000,
+      "volume": 1500000,
       "change": 2.78,
       "changePct": 0.87,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/lly.png"
@@ -69,7 +69,7 @@
       "symbol": "EQT",
       "price": 40.12,
       "open": 39.8,
-      "volume": 3000000,
+      "volume": 2300000,
       "change": 0.32,
       "changePct": 0.8,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/eqt.png"
@@ -96,7 +96,7 @@
       "symbol": "ORCL",
       "price": 90.15,
       "open": 89.5,
-      "volume": 15000000,
+      "volume": 2500000,
       "change": 0.65,
       "changePct": 0.73,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/orcl.png"
@@ -121,36 +121,36 @@
     },
     {
       "symbol": "WM",
-      "price": 160.45,
-      "open": 158,
-      "volume": 2000000,
-      "change": 2.45,
-      "changePct": 1.55,
+      "price": 160.75,
+      "open": 159,
+      "volume": 1100000,
+      "change": 1.75,
+      "changePct": 1.1,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/wm.png"
     },
     {
       "symbol": "UBER",
       "price": 45.6,
       "open": 45,
-      "volume": 25000000,
+      "volume": 22000000,
       "change": 0.6,
       "changePct": 1.33,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/uber.png"
     },
     {
       "symbol": "SGDJ",
-      "price": 25.75,
-      "open": 25.5,
-      "volume": 100000,
-      "change": 0.25,
-      "changePct": 0.98,
+      "price": 25.4,
+      "open": 25.2,
+      "volume": 300000,
+      "change": 0.2,
+      "changePct": 0.79,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/sgdj.png"
     },
     {
       "symbol": "AVGO",
       "price": 650.3,
       "open": 645,
-      "volume": 1800000,
+      "volume": 1300000,
       "change": 5.3,
       "changePct": 0.82,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/avgo.png"
@@ -159,7 +159,7 @@
       "symbol": "HCA",
       "price": 230.1,
       "open": 228,
-      "volume": 1200000,
+      "volume": 900000,
       "change": 2.1,
       "changePct": 0.92,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/hca.png"
@@ -168,7 +168,7 @@
       "symbol": "PEP",
       "price": 185.5,
       "open": 183,
-      "volume": 3000000,
+      "volume": 2000000,
       "change": 2.5,
       "changePct": 1.37,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/pep.png"

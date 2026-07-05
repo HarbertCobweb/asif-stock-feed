@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-05T12:00:41.833Z",
+  "updatedAt": "2026-07-05T21:00:30.489Z",
   "symbols": [
     "AMZN",
     "GOLD",
@@ -31,20 +31,20 @@
     },
     {
       "symbol": "GOLD",
-      "price": 180.23,
-      "open": 179.8,
-      "volume": 1450000,
-      "change": 0.43,
-      "changePct": 0.24,
+      "price": 1850.23,
+      "open": 1845,
+      "volume": 1500000,
+      "change": 5.23,
+      "changePct": 0.28,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/gold.png"
     },
     {
       "symbol": "COST",
-      "price": 495.12,
-      "open": 490,
+      "price": 470.12,
+      "open": 468,
       "volume": 2100000,
-      "change": 5.12,
-      "changePct": 1.04,
+      "change": 2.12,
+      "changePct": 0.45,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/cost.png"
     },
     {
@@ -60,27 +60,27 @@
       "symbol": "LLY",
       "price": 320.78,
       "open": 318,
-      "volume": 1300000,
+      "volume": 1400000,
       "change": 2.78,
       "changePct": 0.87,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/lly.png"
     },
     {
       "symbol": "EQT",
-      "price": 45.67,
-      "open": 45,
+      "price": 40.12,
+      "open": 39.5,
       "volume": 2500000,
-      "change": 0.67,
-      "changePct": 1.49,
+      "change": 0.62,
+      "changePct": 1.57,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/eqt.png"
     },
     {
       "symbol": "LIN",
-      "price": 320.12,
-      "open": 318.5,
-      "volume": 1100000,
-      "change": 1.62,
-      "changePct": 0.51,
+      "price": 320.5,
+      "open": 318,
+      "volume": 1300000,
+      "change": 2.5,
+      "changePct": 0.79,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/lin.png"
     },
     {
@@ -89,25 +89,25 @@
       "open": 308,
       "volume": 35000000,
       "change": 2.45,
-      "changePct": 0.79,
+      "changePct": 0.8,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/msft.png"
     },
     {
       "symbol": "ORCL",
-      "price": 90.34,
-      "open": 89.5,
+      "price": 90.12,
+      "open": 89,
       "volume": 22000000,
-      "change": 0.84,
-      "changePct": 0.94,
+      "change": 1.12,
+      "changePct": 1.25,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/orcl.png"
     },
     {
       "symbol": "PHYS",
       "price": 15.23,
-      "open": 15.1,
+      "open": 15,
       "volume": 500000,
-      "change": 0.13,
-      "changePct": 0.86,
+      "change": 0.23,
+      "changePct": 1.53,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/phys.png"
     },
     {
@@ -130,47 +130,47 @@
     },
     {
       "symbol": "UBER",
-      "price": 42.56,
-      "open": 42,
+      "price": 45.12,
+      "open": 44.5,
       "volume": 28000000,
-      "change": 0.56,
-      "changePct": 1.33,
+      "change": 0.62,
+      "changePct": 1.38,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/uber.png"
     },
     {
       "symbol": "SGDJ",
-      "price": 25.34,
-      "open": 25,
+      "price": 25.67,
+      "open": 25.5,
       "volume": 400000,
-      "change": 0.34,
-      "changePct": 1.36,
+      "change": 0.17,
+      "changePct": 0.67,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/sgdj.png"
     },
     {
       "symbol": "AVGO",
-      "price": 650.12,
+      "price": 650.45,
       "open": 645,
       "volume": 1200000,
-      "change": 5.12,
-      "changePct": 0.79,
+      "change": 5.45,
+      "changePct": 0.85,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/avgo.png"
     },
     {
       "symbol": "HCA",
-      "price": 230.45,
+      "price": 230.12,
       "open": 228,
-      "volume": 800000,
-      "change": 2.45,
-      "changePct": 1.08,
+      "volume": 1100000,
+      "change": 2.12,
+      "changePct": 0.93,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/hca.png"
     },
     {
       "symbol": "PEP",
-      "price": 185.67,
-      "open": 183,
-      "volume": 1500000,
-      "change": 2.67,
-      "changePct": 1.46,
+      "price": 180.45,
+      "open": 179,
+      "volume": 800000,
+      "change": 1.45,
+      "changePct": 0.81,
       "image": "https://harbert.auburn.edu/binaries/images/centers/investment-center/pep.png"
     }
   ]

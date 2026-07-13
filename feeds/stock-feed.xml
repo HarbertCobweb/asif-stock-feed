@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
-  <updatedAt>2026-07-13T23:17:54.761Z</updatedAt>
+  <updatedAt>2026-07-13T23:30:57.996Z</updatedAt>
   
   <item>
     <symbol>AMZN</symbol>
@@ -14,65 +14,65 @@
   <item>
     <symbol>GOLD</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/gold.png</image>
-    <price>180.23</price>
+    <price>180.25</price>
     <open>179.8</open>
     <volume>1450000</volume>
-    <change>0.43</change>
-    <changePct>0.24</changePct>
+    <change>0.45</change>
+    <changePct>0.25</changePct>
   </item>
   <item>
     <symbol>COST</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/cost.png</image>
-    <price>495.12</price>
+    <price>495.3</price>
     <open>490</open>
     <volume>2100000</volume>
-    <change>5.12</change>
-    <changePct>1.04</changePct>
+    <change>5.3</change>
+    <changePct>1.08</changePct>
   </item>
   <item>
     <symbol>DE</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/de.png</image>
-    <price>385.45</price>
+    <price>385.1</price>
     <open>380</open>
     <volume>1800000</volume>
-    <change>5.45</change>
-    <changePct>1.44</changePct>
+    <change>5.1</change>
+    <changePct>1.34</changePct>
   </item>
   <item>
     <symbol>LLY</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/lly.png</image>
-    <price>320.78</price>
+    <price>320.5</price>
     <open>318</open>
     <volume>2500000</volume>
-    <change>2.78</change>
-    <changePct>0.87</changePct>
+    <change>2.5</change>
+    <changePct>0.78</changePct>
   </item>
   <item>
     <symbol>EQT</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/eqt.png</image>
-    <price>40.12</price>
-    <open>39.8</open>
-    <volume>3000000</volume>
-    <change>0.32</change>
-    <changePct>0.8</changePct>
+    <price>40.75</price>
+    <open>40.5</open>
+    <volume>1200000</volume>
+    <change>0.25</change>
+    <changePct>0.62</changePct>
   </item>
   <item>
     <symbol>LIN</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/lin.png</image>
-    <price>320.5</price>
-    <open>318</open>
-    <volume>1200000</volume>
-    <change>2.5</change>
-    <changePct>0.79</changePct>
+    <price>320</price>
+    <open>318.5</open>
+    <volume>1300000</volume>
+    <change>1.5</change>
+    <changePct>0.47</changePct>
   </item>
   <item>
     <symbol>MSFT</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/msft.png</image>
-    <price>310.25</price>
+    <price>310.2</price>
     <open>308</open>
     <volume>35000000</volume>
-    <change>2.25</change>
-    <changePct>0.73</changePct>
+    <change>2.2</change>
+    <changePct>0.71</changePct>
   </item>
   <item>
     <symbol>ORCL</symbol>
@@ -81,78 +81,78 @@
     <open>89.5</open>
     <volume>15000000</volume>
     <change>0.65</change>
-    <changePct>0.73</changePct>
+    <changePct>0.72</changePct>
   </item>
   <item>
     <symbol>PHYS</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/phys.png</image>
     <price>15.3</price>
     <open>15.2</open>
-    <volume>500000</volume>
+    <volume>800000</volume>
     <change>0.1</change>
     <changePct>0.66</changePct>
   </item>
   <item>
     <symbol>PSLV</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/pslv.png</image>
-    <price>10.05</price>
-    <open>10</open>
-    <volume>400000</volume>
+    <price>10.5</price>
+    <open>10.45</open>
+    <volume>600000</volume>
     <change>0.05</change>
-    <changePct>0.5</changePct>
+    <changePct>0.48</changePct>
   </item>
   <item>
     <symbol>WM</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/wm.png</image>
-    <price>160.45</price>
-    <open>158</open>
-    <volume>2000000</volume>
-    <change>2.45</change>
-    <changePct>1.55</changePct>
+    <price>160.75</price>
+    <open>159</open>
+    <volume>900000</volume>
+    <change>1.75</change>
+    <changePct>1.1</changePct>
   </item>
   <item>
     <symbol>UBER</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/uber.png</image>
-    <price>42.1</price>
-    <open>41.5</open>
-    <volume>25000000</volume>
-    <change>0.6</change>
-    <changePct>1.45</changePct>
+    <price>45.2</price>
+    <open>44.8</open>
+    <volume>22000000</volume>
+    <change>0.4</change>
+    <changePct>0.89</changePct>
   </item>
   <item>
     <symbol>SGDJ</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/sgdj.png</image>
-    <price>25.75</price>
-    <open>25.5</open>
-    <volume>100000</volume>
-    <change>0.25</change>
-    <changePct>0.98</changePct>
+    <price>25.1</price>
+    <open>25</open>
+    <volume>500000</volume>
+    <change>0.1</change>
+    <changePct>0.4</changePct>
   </item>
   <item>
     <symbol>AVGO</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/avgo.png</image>
-    <price>650.3</price>
+    <price>650</price>
     <open>645</open>
-    <volume>1800000</volume>
-    <change>5.3</change>
-    <changePct>0.82</changePct>
+    <volume>1000000</volume>
+    <change>5</change>
+    <changePct>0.78</changePct>
   </item>
   <item>
     <symbol>HCA</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/hca.png</image>
-    <price>230.15</price>
+    <price>230.5</price>
     <open>228</open>
-    <volume>2200000</volume>
-    <change>2.15</change>
-    <changePct>0.94</changePct>
+    <volume>1100000</volume>
+    <change>2.5</change>
+    <changePct>1.1</changePct>
   </item>
   <item>
     <symbol>PEP</symbol>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/pep.png</image>
-    <price>185.5</price>
-    <open>183</open>
-    <volume>3000000</volume>
-    <change>2.5</change>
-    <changePct>1.37</changePct>
+    <price>185</price>
+    <open>183.5</open>
+    <volume>1400000</volume>
+    <change>1.5</change>
+    <changePct>0.82</changePct>
   </item>
 </items>

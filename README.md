@@ -1,20 +1,28 @@
+# ASIF Stock Feed — Alpha Vantage
 
-# Auburn Stock Feed
+Uses Alpha Vantage `TIME_SERIES_DAILY` to create cached JSON/XML feeds and a
+16:9 six-row digital signage display.
 
-## Install
+## Render environment variable
 
-npm install
+ALPHAVANTAGE_API_KEY
 
-## Local Run
+## Render commands
 
-cp .env.example .env
-
-Add your OpenAI key to .env
-
-npm start
+Build: npm install
+Start: npm start
 
 ## Routes
 
-/                -> Frontend
-/api/refresh     -> Refresh stock cache
-/data/stocks.json -> Raw cached JSON
+- `/api/refresh`
+- `/api/status`
+- `/data/stocks.json`
+- `/data/stocks.xml`
+- `/data/stocks.ixml`
+
+## Daily cron command
+
+node -e "fetch('https://asif-stock-feed.onrender.com/api/refresh').then(r=>r.text()).then(console.log)"
+
+Do not repeatedly run `/api/refresh` on the free plan. A full refresh uses
+17 requests, and Alpha Vantage's standard allowance is 25 requests per day.

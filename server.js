@@ -27,51 +27,15 @@ const IMAGE_BASE_URL =
   "https://harbert.auburn.edu/binaries/images/centers/investment-center";
 
 const HOLDINGS = [
-  {
-    symbol: "AMZN",
-    name: "Amazon",
-    sector: "Consumer Discretionary"
-  },
-  {
-    symbol: "GOLD",
-    name: "Barrick Mining",
-    sector: "Materials"
-  },
-  {
-    symbol: "COST",
-    name: "Costco Wholesale",
-    sector: "Consumer Staples"
-  },
-  {
-    symbol: "DE",
-    name: "Deere & Company",
-    sector: "Industrials"
-  },
-  {
-    symbol: "LLY",
-    name: "Eli Lilly",
-    sector: "Health Care"
-  },
-  {
-    symbol: "EQT",
-    name: "EQT Corporation",
-    sector: "Energy"
-  },
-  {
-    symbol: "LIN",
-    name: "Linde",
-    sector: "Materials"
-  },
-  {
-    symbol: "MSFT",
-    name: "Microsoft",
-    sector: "Information Technology"
-  },
-  {
-    symbol: "ORCL",
-    name: "Oracle",
-    sector: "Information Technology"
-  },
+  { symbol: "AMZN", name: "Amazon", sector: "Consumer Discretionary" },
+  { symbol: "GOLD", name: "Barrick Mining", sector: "Materials" },
+  { symbol: "COST", name: "Costco Wholesale", sector: "Consumer Staples" },
+  { symbol: "DE", name: "Deere & Company", sector: "Industrials" },
+  { symbol: "LLY", name: "Eli Lilly", sector: "Health Care" },
+  { symbol: "EQT", name: "EQT Corporation", sector: "Energy" },
+  { symbol: "LIN", name: "Linde", sector: "Materials" },
+  { symbol: "MSFT", name: "Microsoft", sector: "Information Technology" },
+  { symbol: "ORCL", name: "Oracle", sector: "Information Technology" },
   {
     symbol: "PHYS",
     name: "Sprott Physical Gold Trust",
@@ -82,36 +46,16 @@ const HOLDINGS = [
     name: "Sprott Physical Silver Trust",
     sector: "Precious Metals Fund"
   },
-  {
-    symbol: "WM",
-    name: "Waste Management",
-    sector: "Industrials"
-  },
-  {
-    symbol: "UBER",
-    name: "Uber Technologies",
-    sector: "Industrials"
-  },
+  { symbol: "WM", name: "Waste Management", sector: "Industrials" },
+  { symbol: "UBER", name: "Uber Technologies", sector: "Industrials" },
   {
     symbol: "SGDJ",
     name: "Sprott Junior Gold Miners ETF",
     sector: "Precious Metals Fund"
   },
-  {
-    symbol: "AVGO",
-    name: "Broadcom",
-    sector: "Information Technology"
-  },
-  {
-    symbol: "HCA",
-    name: "HCA Healthcare",
-    sector: "Health Care"
-  },
-  {
-    symbol: "PEP",
-    name: "PepsiCo",
-    sector: "Consumer Staples"
-  }
+  { symbol: "AVGO", name: "Broadcom", sector: "Information Technology" },
+  { symbol: "HCA", name: "HCA Healthcare", sector: "Health Care" },
+  { symbol: "PEP", name: "PepsiCo", sector: "Consumer Staples" }
 ];
 
 const DATA_DIR = path.join(
@@ -167,6 +111,62 @@ function createImageUrl(symbol) {
   );
 }
 
+function readCache() {
+  if (!fs.existsSync(STOCKS_JSON_FILE)) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(
+      fs.readFileSync(
+        STOCKS_JSON_FILE,
+        "utf8"
+      )
+    );
+  } catch (error) {
+    console.error(
+      "Could not read stock cache:",
+      error.message
+    );
+
+    return null;
+  }
+}
+
+function getUtcDateString(value = new Date()) {
+  return new Date(value)
+    .toISOString()
+    .slice(0, 10);
+}
+
+function isCacheFromToday() {
+  const payload = readCache();
+
+  if (!payload?.updatedAt) {
+    return false;
+  }
+
+  return (
+    getUtcDateString(payload.updatedAt) ===
+    getUtcDateString()
+  );
+}
+
+function getLatestCachedQuoteDate() {
+  const payload = readCache();
+
+  if (!Array.isArray(payload?.data)) {
+    return null;
+  }
+
+  const dates = payload.data
+    .map(stock => stock.quoteDate)
+    .filter(Boolean)
+    .sort((a, b) => b.localeCompare(a));
+
+  return dates[0] || null;
+}
+
 function createEmptyStock(
   holding,
   errorMessage = null
@@ -193,6 +193,8 @@ function stockDataToXml(payload) {
 <items>
   <updatedAt>${escapeXml(payload.updatedAt)}</updatedAt>
   <source>${escapeXml(payload.source)}</source>
+  <count>${escapeXml(payload.count)}</count>
+  <successfulCount>${escapeXml(payload.successfulCount)}</successfulCount>
   ${rows.map(stock => `
   <item>
     <symbol>${escapeXml(stock.symbol)}</symbol>
@@ -383,13 +385,6 @@ async function fetchStockData(holdings) {
   const results = [];
   const errors = [];
 
-  /*
-   * Requests are deliberately sequential.
-   *
-   * A full refresh uses one request per holding.
-   * With 17 holdings, do not run this more than
-   * once daily on the 25-request free plan.
-   */
   for (const holding of holdings) {
     try {
       const quote =
@@ -422,10 +417,6 @@ async function fetchStockData(holdings) {
       stock => stock.price !== null
     );
 
-  /*
-   * Do not overwrite the existing cache if
-   * every request failed.
-   */
   if (successfulResults.length === 0) {
     throw new Error(
       `All Alpha Vantage requests failed. ` +
@@ -474,8 +465,10 @@ async function createAndSaveStockPayload(
 }
 
 /*
- * Test one symbol without refreshing
- * or overwriting the full cache.
+ * Test one symbol.
+ *
+ * Uses one Alpha Vantage request.
+ * Does not overwrite stocks.json.
  *
  * Example:
  * /api/test/AMZN
@@ -513,6 +506,7 @@ app.get(
         success: true,
         source:
           "Alpha Vantage — Daily Time Series",
+        requestCount: 1,
         data: quote
       });
     } catch (error) {
@@ -530,22 +524,64 @@ app.get(
 /*
  * Full refresh.
  *
- * This uses 17 requests.
+ * Uses 17 requests unless today's cache already exists.
+ *
+ * Use ?force=1 only when you intentionally need to
+ * bypass the daily cache protection.
  */
 app.get(
   "/api/refresh",
   async (req, res) => {
+    const forceRefresh =
+      req.query.force === "1";
+
+    if (
+      !forceRefresh &&
+      isCacheFromToday()
+    ) {
+      const payload = readCache();
+
+      return res.json({
+        success: true,
+        cached: true,
+        message:
+          "Today's stock cache already exists. " +
+          "No Alpha Vantage requests were used.",
+        source: payload?.source,
+        updatedAt: payload?.updatedAt,
+        latestQuoteDate:
+          getLatestCachedQuoteDate(),
+        count: payload?.count,
+        successfulCount:
+          payload?.successfulCount,
+        jsonUrl:
+          "/data/stocks.json",
+        ixmlUrl:
+          "/data/stocks.ixml",
+        xmlUrl:
+          "/data/stocks.xml"
+      });
+    }
+
     try {
       const payload =
         await createAndSaveStockPayload();
 
       res.json({
         success: true,
+        cached: false,
+        forced: forceRefresh,
+        message:
+          "Stock cache refreshed.",
         source: payload.source,
         updatedAt: payload.updatedAt,
+        latestQuoteDate:
+          getLatestCachedQuoteDate(),
         count: payload.count,
         successfulCount:
           payload.successfulCount,
+        requestsUsed:
+          HOLDINGS.length,
         jsonUrl:
           "/data/stocks.json",
         ixmlUrl:
@@ -568,7 +604,9 @@ app.get(
   "/data/stocks.json",
   (req, res) => {
     if (
-      !fs.existsSync(STOCKS_JSON_FILE)
+      !fs.existsSync(
+        STOCKS_JSON_FILE
+      )
     ) {
       return res.status(404).json({
         error:
@@ -578,13 +616,17 @@ app.get(
       });
     }
 
-    res.sendFile(STOCKS_JSON_FILE);
+    res.sendFile(
+      STOCKS_JSON_FILE
+    );
   }
 );
 
 function sendXmlFeed(req, res) {
   if (
-    !fs.existsSync(STOCKS_JSON_FILE)
+    !fs.existsSync(
+      STOCKS_JSON_FILE
+    )
   ) {
     return res
       .status(404)
@@ -597,12 +639,19 @@ function sendXmlFeed(req, res) {
       );
   }
 
-  const payload = JSON.parse(
-    fs.readFileSync(
-      STOCKS_JSON_FILE,
-      "utf8"
-    )
-  );
+  const payload = readCache();
+
+  if (!payload) {
+    return res
+      .status(500)
+      .type("application/xml")
+      .send(
+        `<?xml version="1.0" encoding="UTF-8"?>
+<items>
+  <error>stocks.json could not be read.</error>
+</items>`
+      );
+  }
 
   res
     .type("application/xml")
@@ -624,35 +673,7 @@ app.get(
 app.get(
   "/api/status",
   (req, res) => {
-    let cache = null;
-
-    if (
-      fs.existsSync(STOCKS_JSON_FILE)
-    ) {
-      try {
-        const payload = JSON.parse(
-          fs.readFileSync(
-            STOCKS_JSON_FILE,
-            "utf8"
-          )
-        );
-
-        cache = {
-          updatedAt:
-            payload.updatedAt,
-          successfulCount:
-            payload.successfulCount,
-          count:
-            payload.count
-        };
-      } catch {
-        cache = {
-          error:
-            "Cache exists but could " +
-            "not be parsed."
-        };
-      }
-    }
+    const payload = readCache();
 
     res.json({
       running: true,
@@ -665,15 +686,36 @@ app.get(
         ),
       holdingCount:
         HOLDINGS.length,
-      cacheExists:
-        fs.existsSync(
-          STOCKS_JSON_FILE
-        ),
-      testRoute:
-        "/api/test/AMZN",
-      fullRefreshRequests:
+      requestsPerFullRefresh:
         HOLDINGS.length,
-      cache
+      cacheExists:
+        Boolean(payload),
+      cacheFromToday:
+        isCacheFromToday(),
+      latestQuoteDate:
+        getLatestCachedQuoteDate(),
+      cache: payload
+        ? {
+            updatedAt:
+              payload.updatedAt,
+            count:
+              payload.count,
+            successfulCount:
+              payload.successfulCount
+          }
+        : null,
+      routes: {
+        test:
+          "/api/test/AMZN",
+        refresh:
+          "/api/refresh",
+        forcedRefresh:
+          "/api/refresh?force=1",
+        json:
+          "/data/stocks.json",
+        xml:
+          "/data/stocks.xml"
+      }
     });
   }
 );

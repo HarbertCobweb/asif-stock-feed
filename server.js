@@ -20,12 +20,26 @@ app.use(express.json());
 app.use(express.static("public"));
 
 const SYMBOLS = [
-  "AMZN", "GOLD", "COST", "DE", "LLY", "EQT", "LIN",
-  "MSFT", "ORCL", "PHYS", "PSLV", "WM", "UBER",
-  "SGDJ", "AVGO", "HCA", "PEP"
+  "AMZN",
+  "GOLD",
+  "COST",
+  "DE",
+  "LLY",
+  "EQT",
+  "LIN",
+  "MSFT",
+  "ORCL",
+  "PHYS",
+  "PSLV",
+  "WM",
+  "UBER",
+  "SGDJ",
+  "AVGO",
+  "HCA",
+  "PEP"
 ];
 
-const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY;
+const FMP_API_KEY = String(process.env.FMP_API_KEY || "").trim();
 
 const IMAGE_BASE_URL =
   "https://harbert.auburn.edu/binaries/images/centers/investment-center";
@@ -38,7 +52,9 @@ if (!fs.existsSync(DATA_DIR)) {
 }
 
 function escapeXml(value) {
-  if (value === null || value === undefined) return "";
+  if (value === null || value === undefined) {
+    return "";
+  }
 
   return String(value)
     .replaceAll("&", "&amp;")
@@ -48,15 +64,33 @@ function escapeXml(value) {
     .replaceAll("'", "&apos;");
 }
 
-function stockDataToIxml(payload) {
+function normalizeNumber(value) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function createImageUrl(symbol) {
+  return `${IMAGE_BASE_URL}/${String(symbol).toLowerCase()}.png`;
+}
+
+function stockDataToXml(payload) {
   const rows = payload.data || [];
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <items>
   <updatedAt>${escapeXml(payload.updatedAt)}</updatedAt>
+  <source>${escapeXml(payload.source)}</source>
   ${rows.map(stock => `
   <item>
     <symbol>${escapeXml(stock.symbol)}</symbol>
+    <name>${escapeXml(stock.name)}</name>
     <image>${escapeXml(stock.image)}</image>
     <price>${escapeXml(stock.price)}</price>
     <open>${escapeXml(stock.open)}</open>
@@ -68,129 +102,218 @@ function stockDataToIxml(payload) {
 </items>`;
 }
 
-function normalizeNumber(value) {
-  const number = Number(value);
-
-  return Number.isFinite(number)
-    ? number
-    : null;
-}
-
-async function fetchFinnhubQuote(symbol) {
-  const url = new URL("https://finnhub.io/api/v1/quote");
+async function fetchFmpQuote(symbol) {
+  const url = new URL(
+    "https://financialmodelingprep.com/stable/quote"
+  );
 
   url.searchParams.set("symbol", symbol);
-  url.searchParams.set("token", FINNHUB_API_KEY);
+  url.searchParams.set("apikey", FMP_API_KEY);
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  const responseText = await response.text();
 
   if (!response.ok) {
-    const errorText = await response.text();
-
     throw new Error(
-      `Finnhub request failed for ${symbol}: ${response.status} ${errorText}`
+      `FMP request failed for ${symbol}: ` +
+      `${response.status} ${response.statusText} — ${responseText}`
     );
   }
 
-  const quote = await response.json();
+  let payload;
+
+  try {
+    payload = JSON.parse(responseText);
+  } catch {
+    throw new Error(
+      `FMP returned invalid JSON for ${symbol}: ${responseText}`
+    );
+  }
 
   /*
-    Finnhub quote response:
-    c  = current price
-    d  = change
-    dp = percentage change
-    h  = high
-    l  = low
-    o  = open
-    pc = previous close
-    t  = Unix timestamp
+    FMP normally returns an array for this endpoint.
+    Keep support for an object response just in case.
   */
+  const quote = Array.isArray(payload)
+    ? payload[0]
+    : payload;
 
-  const price = normalizeNumber(quote.c);
-  const open = normalizeNumber(quote.o);
-  const change = normalizeNumber(quote.d);
-  const changePct = normalizeNumber(quote.dp);
-  const timestamp = normalizeNumber(quote.t);
+  if (!quote || typeof quote !== "object") {
+    throw new Error(
+      `No quote returned for ${symbol}: ${responseText}`
+    );
+  }
 
   /*
-    Finnhub may return zero values when a symbol cannot be resolved.
-    Treat a quote with no usable price as unavailable.
+    Detect subscription or API errors that may come back
+    inside an otherwise successful JSON response.
   */
-  if (price === null || price === 0) {
-    console.warn(`No usable Finnhub quote returned for ${symbol}`);
+  if (quote.error || quote["Error Message"]) {
+    throw new Error(
+      `FMP error for ${symbol}: ` +
+      `${quote.error || quote["Error Message"]}`
+    );
+  }
 
-    return {
-      symbol,
-      image: `${IMAGE_BASE_URL}/${symbol.toLowerCase()}.png`,
-      price: null,
-      open: null,
-      volume: null,
-      change: null,
-      changePct: null,
-      quoteTimestamp: null
-    };
+  const price = normalizeNumber(quote.price);
+
+  if (price === null) {
+    throw new Error(
+      `No usable price returned for ${symbol}: ${responseText}`
+    );
+  }
+
+  const quoteTimestampValue =
+    quote.timestamp ??
+    quote.lastUpdated ??
+    quote.date;
+
+  let quoteTimestamp = null;
+
+  if (quoteTimestampValue) {
+    /*
+      Unix timestamps are commonly returned as seconds.
+      String dates are also supported.
+    */
+    if (
+      typeof quoteTimestampValue === "number" ||
+      /^\d+$/.test(String(quoteTimestampValue))
+    ) {
+      const numericTimestamp = Number(quoteTimestampValue);
+
+      quoteTimestamp = new Date(
+        numericTimestamp > 9999999999
+          ? numericTimestamp
+          : numericTimestamp * 1000
+      ).toISOString();
+    } else {
+      const parsedDate = new Date(quoteTimestampValue);
+
+      if (!Number.isNaN(parsedDate.getTime())) {
+        quoteTimestamp = parsedDate.toISOString();
+      }
+    }
   }
 
   return {
     symbol,
-    image: `${IMAGE_BASE_URL}/${symbol.toLowerCase()}.png`,
+    name:
+      quote.name ??
+      quote.companyName ??
+      symbol,
+
+    image: createImageUrl(symbol),
+
     price,
-    open,
-    volume: null,
-    change,
-    changePct,
-    quoteTimestamp: timestamp
-      ? new Date(timestamp * 1000).toISOString()
-      : null
+
+    open: normalizeNumber(
+      quote.open ??
+      quote.openPrice
+    ),
+
+    volume: normalizeNumber(
+      quote.volume ??
+      quote.avgVolume
+    ),
+
+    change: normalizeNumber(
+      quote.change
+    ),
+
+    changePct: normalizeNumber(
+      quote.changePercentage ??
+      quote.changesPercentage ??
+      quote.changePercent
+    ),
+
+    quoteTimestamp
   };
 }
 
 async function fetchStockData(symbols) {
-  if (!FINNHUB_API_KEY) {
+  if (!FMP_API_KEY) {
     throw new Error(
-      "FINNHUB_API_KEY is missing from the environment variables."
+      "FMP_API_KEY is missing from the environment variables."
     );
   }
 
-  /*
-    Fetch sequentially rather than all at once.
-    This is gentler on Finnhub free-tier rate limits.
-  */
   const results = [];
+  const errors = [];
 
+  /*
+    Fetch quotes sequentially. That avoids firing 17 API
+    requests at once and is friendlier to free-tier limits.
+  */
   for (const rawSymbol of symbols) {
-    const symbol = String(rawSymbol).trim().toUpperCase();
+    const symbol = String(rawSymbol)
+      .trim()
+      .toUpperCase();
 
     try {
-      const quote = await fetchFinnhubQuote(symbol);
+      const quote = await fetchFmpQuote(symbol);
       results.push(quote);
     } catch (error) {
       console.error(error.message);
 
+      errors.push({
+        symbol,
+        error: error.message
+      });
+
+      /*
+        Keep the symbol in the feed, but expose null values
+        when only that individual quote fails.
+      */
       results.push({
         symbol,
-        image: `${IMAGE_BASE_URL}/${symbol.toLowerCase()}.png`,
+        name: symbol,
+        image: createImageUrl(symbol),
         price: null,
         open: null,
         volume: null,
         change: null,
         changePct: null,
-        quoteTimestamp: null
+        quoteTimestamp: null,
+        error: error.message
       });
     }
+  }
+
+  const successfulResults = results.filter(
+    stock => stock.price !== null
+  );
+
+  /*
+    Do not overwrite a healthy cache with an entirely failed feed.
+  */
+  if (successfulResults.length === 0) {
+    throw new Error(
+      `All FMP requests failed. First error: ${
+        errors[0]?.error || "Unknown FMP error"
+      }`
+    );
   }
 
   return results;
 }
 
 async function createAndSaveStockPayload(symbols) {
-  const parsedData = await fetchStockData(symbols);
+  const stockData = await fetchStockData(symbols);
 
   const payload = {
     updatedAt: new Date().toISOString(),
-    source: "Finnhub",
+    source: "Financial Modeling Prep",
     symbols,
-    data: parsedData
+    count: stockData.length,
+    successfulCount: stockData.filter(
+      stock => stock.price !== null
+    ).length,
+    data: stockData
   };
 
   fs.writeFileSync(
@@ -228,7 +351,8 @@ app.get("/api/refresh", async (req, res) => {
       success: true,
       source: payload.source,
       updatedAt: payload.updatedAt,
-      count: payload.data.length,
+      count: payload.count,
+      successfulCount: payload.successfulCount,
       jsonUrl: "/data/stocks.json",
       ixmlUrl: "/data/stocks.ixml",
       xmlUrl: "/data/stocks.xml"
@@ -256,7 +380,8 @@ app.get("/data/stocks.json", (req, res) => {
 
 app.get("/data/stocks.ixml", (req, res) => {
   if (!fs.existsSync(STOCKS_JSON_FILE)) {
-    return res.status(404)
+    return res
+      .status(404)
       .type("application/xml")
       .send(
         `<?xml version="1.0" encoding="UTF-8"?>
@@ -270,14 +395,15 @@ app.get("/data/stocks.ixml", (req, res) => {
     fs.readFileSync(STOCKS_JSON_FILE, "utf8")
   );
 
-  const xml = stockDataToIxml(payload);
-
-  res.type("application/xml").send(xml);
+  res
+    .type("application/xml")
+    .send(stockDataToXml(payload));
 });
 
 app.get("/data/stocks.xml", (req, res) => {
   if (!fs.existsSync(STOCKS_JSON_FILE)) {
-    return res.status(404)
+    return res
+      .status(404)
       .type("application/xml")
       .send(
         `<?xml version="1.0" encoding="UTF-8"?>
@@ -291,11 +417,24 @@ app.get("/data/stocks.xml", (req, res) => {
     fs.readFileSync(STOCKS_JSON_FILE, "utf8")
   );
 
-  const xml = stockDataToIxml(payload);
+  res
+    .type("application/xml")
+    .send(stockDataToXml(payload));
+});
 
-  res.type("application/xml").send(xml);
+app.get("/api/status", (req, res) => {
+  res.json({
+    running: true,
+    provider: "Financial Modeling Prep",
+    apiKeyConfigured: Boolean(FMP_API_KEY),
+    cacheExists: fs.existsSync(STOCKS_JSON_FILE),
+    symbols: SYMBOLS
+  });
 });
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(
+    `FMP API key configured: ${Boolean(FMP_API_KEY)}`
+  );
 });

@@ -27,51 +27,15 @@ const IMAGE_BASE_URL =
   "https://harbert.auburn.edu/binaries/images/centers/investment-center";
 
 const HOLDINGS = [
-  {
-    symbol: "AMZN",
-    name: "Amazon",
-    sector: "Consumer Discretionary"
-  },
-  {
-    symbol: "GOLD",
-    name: "Barrick Mining",
-    sector: "Materials"
-  },
-  {
-    symbol: "COST",
-    name: "Costco Wholesale",
-    sector: "Consumer Staples"
-  },
-  {
-    symbol: "DE",
-    name: "Deere & Company",
-    sector: "Industrials"
-  },
-  {
-    symbol: "LLY",
-    name: "Eli Lilly",
-    sector: "Health Care"
-  },
-  {
-    symbol: "EQT",
-    name: "EQT Corporation",
-    sector: "Energy"
-  },
-  {
-    symbol: "LIN",
-    name: "Linde",
-    sector: "Materials"
-  },
-  {
-    symbol: "MSFT",
-    name: "Microsoft",
-    sector: "Information Technology"
-  },
-  {
-    symbol: "ORCL",
-    name: "Oracle",
-    sector: "Information Technology"
-  },
+  { symbol: "AMZN", name: "Amazon", sector: "Consumer Discretionary" },
+  { symbol: "GOLD", name: "Barrick Mining", sector: "Materials" },
+  { symbol: "COST", name: "Costco Wholesale", sector: "Consumer Staples" },
+  { symbol: "DE", name: "Deere & Company", sector: "Industrials" },
+  { symbol: "LLY", name: "Eli Lilly", sector: "Health Care" },
+  { symbol: "EQT", name: "EQT Corporation", sector: "Energy" },
+  { symbol: "LIN", name: "Linde", sector: "Materials" },
+  { symbol: "MSFT", name: "Microsoft", sector: "Information Technology" },
+  { symbol: "ORCL", name: "Oracle", sector: "Information Technology" },
   {
     symbol: "PHYS",
     name: "Sprott Physical Gold Trust",
@@ -82,36 +46,16 @@ const HOLDINGS = [
     name: "Sprott Physical Silver Trust",
     sector: "Precious Metals Fund"
   },
-  {
-    symbol: "WM",
-    name: "Waste Management",
-    sector: "Industrials"
-  },
-  {
-    symbol: "UBER",
-    name: "Uber Technologies",
-    sector: "Industrials"
-  },
+  { symbol: "WM", name: "Waste Management", sector: "Industrials" },
+  { symbol: "UBER", name: "Uber Technologies", sector: "Industrials" },
   {
     symbol: "SGDJ",
     name: "Sprott Junior Gold Miners ETF",
     sector: "Precious Metals Fund"
   },
-  {
-    symbol: "AVGO",
-    name: "Broadcom",
-    sector: "Information Technology"
-  },
-  {
-    symbol: "HCA",
-    name: "HCA Healthcare",
-    sector: "Health Care"
-  },
-  {
-    symbol: "PEP",
-    name: "PepsiCo",
-    sector: "Consumer Staples"
-  }
+  { symbol: "AVGO", name: "Broadcom", sector: "Information Technology" },
+  { symbol: "HCA", name: "HCA Healthcare", sector: "Health Care" },
+  { symbol: "PEP", name: "PepsiCo", sector: "Consumer Staples" }
 ];
 
 const DATA_DIR = path.join(
@@ -128,6 +72,12 @@ const STOCKS_JSON_FILE = path.join(
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, {
     recursive: true
+  });
+}
+
+function sleep(milliseconds) {
+  return new Promise(resolve => {
+    setTimeout(resolve, milliseconds);
   });
 }
 
@@ -267,13 +217,7 @@ function stockDataToXml(payload) {
 </items>`;
 }
 
-async function fetchTwelveData(holdings) {
-  if (!TWELVEDATA_API_KEY) {
-    throw new Error(
-      "TWELVEDATA_API_KEY is missing from the environment variables."
-    );
-  }
-
+async function fetchTwelveDataBatch(holdings) {
   const symbols = holdings
     .map(holding => holding.symbol)
     .join(",");
@@ -307,6 +251,10 @@ async function fetchTwelveData(holdings) {
     TWELVEDATA_API_KEY
   );
 
+  console.log(
+    `Requesting Twelve Data batch: ${symbols}`
+  );
+
   const response = await fetch(url, {
     headers: {
       Accept: "application/json"
@@ -318,7 +266,7 @@ async function fetchTwelveData(holdings) {
 
   if (!response.ok) {
     throw new Error(
-      `Twelve Data request failed: ` +
+      `Twelve Data batch request failed: ` +
       `${response.status} ` +
       `${response.statusText} — ` +
       responseText
@@ -372,7 +320,8 @@ async function fetchTwelveData(holdings) {
       continue;
     }
 
-    const values = symbolData.values;
+    const values =
+      symbolData.values;
 
     if (
       !Array.isArray(values) ||
@@ -388,24 +337,31 @@ async function fetchTwelveData(holdings) {
       continue;
     }
 
-    const latest = values[0];
-    const previous = values[1];
+    const latest =
+      values[0];
 
-    const price = normalizeNumber(
-      latest.close
-    );
+    const previous =
+      values[1];
 
-    const open = normalizeNumber(
-      latest.open
-    );
+    const price =
+      normalizeNumber(
+        latest.close
+      );
 
-    const volume = normalizeNumber(
-      latest.volume
-    );
+    const open =
+      normalizeNumber(
+        latest.open
+      );
 
-    const previousClose = normalizeNumber(
-      previous.close
-    );
+    const volume =
+      normalizeNumber(
+        latest.volume
+      );
+
+    const previousClose =
+      normalizeNumber(
+        previous.close
+      );
 
     if (
       price === null ||
@@ -426,34 +382,212 @@ async function fetchTwelveData(holdings) {
 
     const changePct =
       previousClose !== 0
-        ? (change / previousClose) * 100
+        ? (
+            change /
+            previousClose
+          ) * 100
         : null;
 
     results.push({
-      symbol: holding.symbol,
-      name: holding.name,
-      sector: holding.sector,
-      image: createImageUrl(
-        holding.symbol
-      ),
+      symbol:
+        holding.symbol,
+
+      name:
+        holding.name,
+
+      sector:
+        holding.sector,
+
+      image:
+        createImageUrl(
+          holding.symbol
+        ),
+
       price,
       open,
       volume,
       change,
       changePct,
+
       quoteDate:
         latest.datetime || null
     });
   }
 
-  const successfulResults =
-    results.filter(
-      stock => stock.price !== null
+  return {
+    results,
+
+    creditsUsed:
+      response.headers.get(
+        "api-credits-used"
+      ),
+
+    creditsLeft:
+      response.headers.get(
+        "api-credits-left"
+      )
+  };
+}
+
+async function fetchTwelveData(holdings) {
+  if (!TWELVEDATA_API_KEY) {
+    throw new Error(
+      "TWELVEDATA_API_KEY is missing from " +
+      "the environment variables."
+    );
+  }
+
+  const BATCH_SIZE = 6;
+  const BATCH_DELAY_MS =
+    65 * 1000;
+
+  const batches = [];
+
+  for (
+    let index = 0;
+    index < holdings.length;
+    index += BATCH_SIZE
+  ) {
+    batches.push(
+      holdings.slice(
+        index,
+        index + BATCH_SIZE
+      )
+    );
+  }
+
+  const allResults = [];
+  const batchUsage = [];
+
+  for (
+    let index = 0;
+    index < batches.length;
+    index++
+  ) {
+    const batch =
+      batches[index];
+
+    console.log(
+      `Starting batch ${index + 1} ` +
+      `of ${batches.length}: ` +
+      batch
+        .map(holding => holding.symbol)
+        .join(", ")
     );
 
-  if (successfulResults.length === 0) {
+    try {
+      const {
+        results,
+        creditsUsed,
+        creditsLeft
+      } = await fetchTwelveDataBatch(
+        batch
+      );
+
+      allResults.push(
+        ...results
+      );
+
+      batchUsage.push({
+        batch:
+          index + 1,
+
+        symbols:
+          batch.map(
+            holding => holding.symbol
+          ),
+
+        creditsUsed:
+          creditsUsed !== null
+            ? Number(creditsUsed)
+            : null,
+
+        creditsLeft:
+          creditsLeft !== null
+            ? Number(creditsLeft)
+            : null
+      });
+
+      console.log(
+        `Completed batch ${index + 1} ` +
+        `of ${batches.length}.`
+      );
+    } catch (error) {
+      console.error(
+        `Batch ${index + 1} failed:`,
+        error.message
+      );
+
+      for (const holding of batch) {
+        allResults.push(
+          createEmptyStock(
+            holding,
+            error.message
+          )
+        );
+      }
+
+      batchUsage.push({
+        batch:
+          index + 1,
+
+        symbols:
+          batch.map(
+            holding => holding.symbol
+          ),
+
+        error:
+          error.message
+      });
+    }
+
+    if (
+      index <
+      batches.length - 1
+    ) {
+      console.log(
+        `Waiting 65 seconds before ` +
+        `batch ${index + 2}...`
+      );
+
+      await sleep(
+        BATCH_DELAY_MS
+      );
+    }
+  }
+
+  const resultBySymbol =
+    new Map(
+      allResults.map(stock => [
+        stock.symbol,
+        stock
+      ])
+    );
+
+  const orderedResults =
+    holdings.map(holding =>
+      resultBySymbol.get(
+        holding.symbol
+      ) ||
+      createEmptyStock(
+        holding,
+        "No result was returned."
+      )
+    );
+
+  const successfulResults =
+    orderedResults.filter(
+      stock =>
+        stock.price !== null
+    );
+
+  if (
+    successfulResults.length === 0
+  ) {
     const firstError =
-      results.find(stock => stock.error)?.error;
+      orderedResults.find(
+        stock => stock.error
+      )?.error;
 
     throw new Error(
       `All Twelve Data symbols failed. ` +
@@ -465,15 +599,17 @@ async function fetchTwelveData(holdings) {
   }
 
   return {
-    results,
+    results:
+      orderedResults,
+
     creditsUsed:
-      response.headers.get(
-        "api-credits-used"
-      ),
+      holdings.length,
+
     creditsLeft:
-      response.headers.get(
-        "api-credits-left"
-      )
+      batchUsage.at(-1)
+        ?.creditsLeft ?? null,
+
+    batchUsage
   };
 }
 
@@ -483,33 +619,47 @@ async function createAndSaveStockPayload(
   const {
     results,
     creditsUsed,
-    creditsLeft
+    creditsLeft,
+    batchUsage
   } = await fetchTwelveData(holdings);
 
   const payload = {
-    updatedAt: new Date().toISOString(),
+    updatedAt:
+      new Date().toISOString(),
+
     source:
       "Twelve Data — Daily Time Series",
-    count: results.length,
+
+    count:
+      results.length,
+
     successfulCount:
       results.filter(
         stock => stock.price !== null
       ).length,
+
     symbols:
       holdings.map(
         holding => holding.symbol
       ),
+
     apiUsage: {
       creditsUsed:
         creditsUsed !== null
           ? Number(creditsUsed)
           : null,
+
       creditsLeft:
         creditsLeft !== null
           ? Number(creditsLeft)
-          : null
+          : null,
+
+      batches:
+        batchUsage
     },
-    data: results
+
+    data:
+      results
   };
 
   fs.writeFileSync(
@@ -524,14 +674,6 @@ async function createAndSaveStockPayload(
   return payload;
 }
 
-/*
- * Full refresh.
- *
- * Normally uses one batch HTTP request.
- *
- * Use ?force=1 only when you intentionally
- * need to bypass the daily cache protection.
- */
 app.get(
   "/api/refresh",
   async (req, res) => {
@@ -542,30 +684,44 @@ app.get(
       !forceRefresh &&
       isCacheFromToday()
     ) {
-      const payload = readCache();
+      const payload =
+        readCache();
 
       return res.json({
-        success: true,
-        cached: true,
+        success:
+          true,
+
+        cached:
+          true,
+
         message:
           "Today's stock cache already exists. " +
           "No Twelve Data request was made.",
+
         source:
           payload?.source,
+
         updatedAt:
           payload?.updatedAt,
+
         latestQuoteDate:
           getLatestCachedQuoteDate(),
+
         count:
           payload?.count,
+
         successfulCount:
           payload?.successfulCount,
+
         apiUsage:
           payload?.apiUsage || null,
+
         jsonUrl:
           "/data/stocks.json",
+
         ixmlUrl:
           "/data/stocks.ixml",
+
         xmlUrl:
           "/data/stocks.xml"
       });
@@ -576,27 +732,42 @@ app.get(
         await createAndSaveStockPayload();
 
       res.json({
-        success: true,
-        cached: false,
-        forced: forceRefresh,
+        success:
+          true,
+
+        cached:
+          false,
+
+        forced:
+          forceRefresh,
+
         message:
           "Stock cache refreshed.",
+
         source:
           payload.source,
+
         updatedAt:
           payload.updatedAt,
+
         latestQuoteDate:
           getLatestCachedQuoteDate(),
+
         count:
           payload.count,
+
         successfulCount:
           payload.successfulCount,
+
         apiUsage:
           payload.apiUsage,
+
         jsonUrl:
           "/data/stocks.json",
+
         ixmlUrl:
           "/data/stocks.ixml",
+
         xmlUrl:
           "/data/stocks.xml"
       });
@@ -606,6 +777,7 @@ app.get(
       res.status(500).json({
         error:
           "Refresh failed",
+
         detail:
           error.message
       });
@@ -613,15 +785,6 @@ app.get(
   }
 );
 
-/*
- * Test a subset of configured symbols.
- *
- * Example:
- * /api/test/AMZN
- * /api/test/AMZN,MSFT
- *
- * This does not overwrite stocks.json.
- */
 app.get(
   "/api/test/:symbols",
   async (req, res) => {
@@ -629,24 +792,29 @@ app.get(
       String(req.params.symbols || "")
         .split(",")
         .map(symbol =>
-          symbol.trim().toUpperCase()
+          symbol
+            .trim()
+            .toUpperCase()
         )
         .filter(Boolean);
 
     const holdings =
-      HOLDINGS.filter(holding =>
-        requestedSymbols.includes(
-          holding.symbol
-        )
+      HOLDINGS.filter(
+        holding =>
+          requestedSymbols.includes(
+            holding.symbol
+          )
       );
 
     if (!holdings.length) {
       return res.status(404).json({
         error:
           "No requested symbols are in the holdings list.",
+
         availableSymbols:
           HOLDINGS.map(
-            holding => holding.symbol
+            holding =>
+              holding.symbol
           )
       });
     }
@@ -656,27 +824,38 @@ app.get(
         results,
         creditsUsed,
         creditsLeft
-      } = await fetchTwelveData(holdings);
+      } =
+        await fetchTwelveDataBatch(
+          holdings
+        );
 
       res.json({
-        success: true,
+        success:
+          true,
+
         source:
           "Twelve Data — Daily Time Series",
+
         requestedSymbols:
           holdings.map(
-            holding => holding.symbol
+            holding =>
+              holding.symbol
           ),
+
         apiUsage: {
           creditsUsed:
             creditsUsed !== null
               ? Number(creditsUsed)
               : null,
+
           creditsLeft:
             creditsLeft !== null
               ? Number(creditsLeft)
               : null
         },
-        data: results
+
+        data:
+          results
       });
     } catch (error) {
       console.error(error);
@@ -684,6 +863,7 @@ app.get(
       res.status(500).json({
         error:
           "Test failed",
+
         detail:
           error.message
       });
@@ -730,7 +910,8 @@ function sendXmlFeed(req, res) {
       );
   }
 
-  const payload = readCache();
+  const payload =
+    readCache();
 
   if (!payload) {
     return res
@@ -764,52 +945,81 @@ app.get(
 app.get(
   "/api/status",
   (req, res) => {
-    const payload = readCache();
+    const payload =
+      readCache();
 
     res.json({
-      running: true,
+      running:
+        true,
+
       provider:
         "Twelve Data",
+
       endpoint:
         "time_series",
+
       interval:
         "1day",
+
       apiKeyConfigured:
         Boolean(
           TWELVEDATA_API_KEY
         ),
+
       holdingCount:
         HOLDINGS.length,
+
+      batchSize:
+        6,
+
+      batchDelaySeconds:
+        65,
+
+      expectedRefreshDurationSeconds:
+        130,
+
       cacheExists:
         Boolean(payload),
+
       cacheFromToday:
         isCacheFromToday(),
+
       latestQuoteDate:
         getLatestCachedQuoteDate(),
+
       cache:
         payload
           ? {
               updatedAt:
                 payload.updatedAt,
+
               count:
                 payload.count,
+
               successfulCount:
                 payload.successfulCount,
+
               apiUsage:
                 payload.apiUsage || null
             }
           : null,
+
       routes: {
         test:
           "/api/test/AMZN",
+
         batchTest:
           "/api/test/AMZN,MSFT",
+
         refresh:
           "/api/refresh",
+
         forcedRefresh:
           "/api/refresh?force=1",
+
         json:
           "/data/stocks.json",
+
         xml:
           "/data/stocks.xml"
       }

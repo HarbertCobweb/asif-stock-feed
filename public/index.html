@@ -4,168 +4,436 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>ASIF Market Feed</title>
+
 <style>
 :root{
   --navy:#0c2340;
   --navy-dark:#06172d;
   --orange:#e87722;
+  --white:#ffffff;
   --muted:rgba(255,255,255,.72);
   --line:rgba(255,255,255,.14);
   --green:#36d47b;
   --red:#ff6b6b;
 }
-*{box-sizing:border-box}
-html,body{
-  margin:0;width:100%;height:100%;overflow:hidden;
-  font-family:Arial,Helvetica,sans-serif;
-  background:var(--navy);color:white;
+
+*{
+  box-sizing:border-box;
 }
+
+html,
+body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--navy);
+  color:var(--white);
+}
+
 body{
   background:
-    radial-gradient(circle at 12% 18%, rgba(232,119,34,.32), transparent 28%),
-    linear-gradient(135deg,var(--navy-dark),var(--navy) 60%,#030b16);
+    radial-gradient(
+      circle at 12% 18%,
+      rgba(232,119,34,.32),
+      transparent 28%
+    ),
+    linear-gradient(
+      135deg,
+      var(--navy-dark),
+      var(--navy) 60%,
+      #030b16
+    );
 }
+
 .screen{
-  width:100vw;height:100vh;padding:clamp(28px,4vw,70px);
-  display:grid;grid-template-rows:auto 1fr auto;
+  width:100vw;
+  height:100vh;
+  padding:clamp(28px,4vw,70px);
+  display:grid;
+  grid-template-rows:auto 1fr auto;
   gap:clamp(20px,2.5vw,44px);
 }
+
 .header{
-  display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:2rem;
 }
+
 .kicker{
-  color:var(--orange);text-transform:uppercase;letter-spacing:.12em;
-  font-weight:900;font-size:clamp(15px,1.2vw,24px);
+  color:var(--orange);
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  font-weight:900;
+  font-size:clamp(15px,1.2vw,24px);
 }
+
 h1{
-  margin:.25rem 0 0;font-size:clamp(52px,5.4vw,112px);
-  line-height:.9;letter-spacing:-.06em;
+  margin:.25rem 0 0;
+  font-size:clamp(52px,5.4vw,112px);
+  line-height:.9;
+  letter-spacing:-.06em;
 }
+
 .updated{
-  color:var(--muted);font-size:clamp(16px,1.4vw,28px);white-space:nowrap;
+  color:var(--muted);
+  font-size:clamp(16px,1.4vw,28px);
+  white-space:nowrap;
+  text-align:right;
 }
+
+.updated strong{
+  color:var(--white);
+}
+
 .table-wrap{
-  min-height:0;overflow:hidden;border-radius:34px;
-  border:1px solid var(--line);background:rgba(255,255,255,.06);
+  min-height:0;
+  overflow:hidden;
+  border-radius:34px;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.06);
   box-shadow:0 32px 90px rgba(0,0,0,.35);
 }
-.table-head,.row{
-  display:grid;
-  grid-template-columns:2.15fr .95fr .95fr 1.1fr 1.15fr;
-}
-.table-head{
-  padding:clamp(16px,1.4vw,28px) clamp(22px,2vw,40px);
-  background:rgba(255,255,255,.08);color:rgba(255,255,255,.62);
-  text-transform:uppercase;letter-spacing:.09em;
-  font-size:clamp(12px,1vw,18px);font-weight:900;
-}
-.table-head div:not(:first-child){text-align:right}
-.viewport{height:calc(100% - clamp(52px,5vw,92px));overflow:hidden}
-.track{will-change:transform}
+
+.table-head,
 .row{
-  align-items:center;min-height:calc((100vh - 305px) / 6);
-  padding:clamp(12px,1.15vw,22px) clamp(22px,2vw,40px);
+  display:grid;
+  grid-template-columns:
+    2.15fr
+    .95fr
+    .95fr
+    1.1fr
+    1.15fr;
+}
+
+.table-head{
+  padding:
+    clamp(16px,1.4vw,28px)
+    clamp(22px,2vw,40px);
+
+  background:rgba(255,255,255,.08);
+  color:rgba(255,255,255,.62);
+  text-transform:uppercase;
+  letter-spacing:.09em;
+  font-size:clamp(12px,1vw,18px);
+  font-weight:900;
+}
+
+.table-head div:not(:first-child){
+  text-align:right;
+}
+
+.viewport{
+  height:calc(100% - clamp(52px,5vw,92px));
+  overflow:hidden;
+}
+
+.track{
+  will-change:transform;
+}
+
+.row{
+  align-items:center;
+  min-height:calc((100vh - 305px) / 6);
+
+  padding:
+    clamp(12px,1.15vw,22px)
+    clamp(22px,2vw,40px);
+
   border-bottom:1px solid var(--line);
   font-size:clamp(20px,1.75vw,36px);
 }
-.holding{display:flex;align-items:center;gap:clamp(14px,1.35vw,26px);min-width:0}
+
+.holding{
+  display:flex;
+  align-items:center;
+  gap:clamp(14px,1.35vw,26px);
+  min-width:0;
+}
+
 .logo{
-  width:clamp(50px,4vw,84px);height:clamp(50px,4vw,84px);
-  object-fit:contain;flex:0 0 auto;background:white;border-radius:18px;padding:7px;
+  width:clamp(50px,4vw,84px);
+  height:clamp(50px,4vw,84px);
+  object-fit:contain;
+  flex:0 0 auto;
+  background:var(--white);
+  border-radius:18px;
+  padding:7px;
 }
-.holding-text{min-width:0}
-.symbol{font-weight:900;letter-spacing:.02em}
+
+.holding-text{
+  min-width:0;
+}
+
+.symbol{
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
 .company{
-  margin-top:.22em;color:var(--muted);font-size:.56em;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  margin-top:.22em;
+  color:var(--muted);
+  font-size:.56em;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.value{text-align:right;font-variant-numeric:tabular-nums;font-weight:800}
-.volume{color:rgba(255,255,255,.78)}
-.pos{color:var(--green)}
-.neg{color:var(--red)}
-.neutral{color:var(--muted)}
+
+.value{
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+  font-weight:800;
+}
+
+.volume{
+  color:rgba(255,255,255,.78);
+}
+
+.pos{
+  color:var(--green);
+}
+
+.neg{
+  color:var(--red);
+}
+
+.neutral{
+  color:var(--muted);
+}
+
 .footer{
-  display:flex;justify-content:space-between;align-items:center;
-  color:var(--muted);font-size:clamp(14px,1.1vw,22px);
-  border-top:1px solid var(--line);padding-top:18px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:2rem;
+  color:var(--muted);
+  font-size:clamp(14px,1.1vw,22px);
+  border-top:1px solid var(--line);
+  padding-top:18px;
 }
-.footer strong{color:white}
-.error{padding:3rem;font-size:clamp(24px,3vw,54px)}
+
+.footer strong{
+  color:var(--white);
+}
+
+.status-dot{
+  display:inline-block;
+  width:.65em;
+  height:.65em;
+  margin-right:.45em;
+  border-radius:50%;
+  background:var(--green);
+  box-shadow:0 0 16px rgba(54,212,123,.7);
+}
+
+.error{
+  padding:3rem;
+  font-size:clamp(24px,3vw,54px);
+}
+
 @media(max-width:900px){
-  .screen{padding:24px}
-  .header{align-items:flex-start;flex-direction:column}
-  .table-head,.row{grid-template-columns:1.55fr 1fr 1fr}
+  .screen{
+    padding:24px;
+  }
+
+  .header{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .updated{
+    text-align:left;
+  }
+
+  .table-head,
+  .row{
+    grid-template-columns:
+      1.55fr
+      1fr
+      1fr;
+  }
+
   .table-head div:nth-child(3),
   .table-head div:nth-child(4),
-  .row .hide-small{display:none}
+  .row .hide-small{
+    display:none;
+  }
+
+  .footer{
+    align-items:flex-start;
+    flex-direction:column;
+  }
 }
 </style>
 </head>
+
 <body>
+
 <div class="screen">
+
   <header class="header">
     <div>
-      <div class="kicker">Auburn Student Investment Fund</div>
-      <h1>Portfolio Holdings</h1>
+      <div class="kicker">
+        Auburn Student Investment Fund
+      </div>
+
+      <h1>
+        Portfolio Holdings
+      </h1>
     </div>
-    <div class="updated" id="updated">Loading…</div>
+
+    <div
+      class="updated"
+      id="updated"
+      aria-live="polite"
+    >
+      Loading market data…
+    </div>
   </header>
 
   <main class="table-wrap">
+
     <div class="table-head">
       <div>Holding</div>
-      <div>Close</div>
+      <div>Price</div>
       <div class="hide-small">Open</div>
       <div class="hide-small">Volume</div>
       <div>Daily Change</div>
     </div>
+
     <div class="viewport">
-      <div class="track" id="track"></div>
+      <div
+        class="track"
+        id="track"
+      ></div>
     </div>
+
   </main>
 
   <footer class="footer">
-    <div><strong>Auburn University</strong> Harbert College of Business</div>
-    <div>End-of-day market data</div>
+    <div>
+      <strong>Auburn University</strong>
+      Harbert College of Business
+    </div>
+
+    <div>
+      <span class="status-dot"></span>
+      Near-real-time market snapshot
+    </div>
   </footer>
+
 </div>
 
 <script>
 const ROWS_VISIBLE = 6;
+
+/*
+ * Time each group remains visible
+ * before scrolling to the next six.
+ */
 const PAGE_SECONDS = 10;
+
+/*
+ * Duration of the vertical movement.
+ */
 const TRANSITION_SECONDS = 2.5;
 
+/*
+ * How often the display checks the
+ * cached JSON for newly refreshed data.
+ *
+ * This does not call Twelve Data.
+ * It only reloads your cached file.
+ */
+const DISPLAY_REFRESH_MS =
+  2 * 60 * 1000;
+
+let pagingTimer = null;
+
 function money(value){
-  const num = Number(value);
-  return Number.isFinite(num) ? "$" + num.toFixed(2) : "—";
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? "$" + number.toFixed(2)
+    : "—";
 }
 
 function compactVolume(value){
-  const num = Number(value);
-  if(!Number.isFinite(num)) return "—";
-  if(num >= 1e9) return (num / 1e9).toFixed(2) + "B";
-  if(num >= 1e6) return (num / 1e6).toFixed(2) + "M";
-  if(num >= 1e3) return (num / 1e3).toFixed(1) + "K";
-  return num.toLocaleString();
+  const number = Number(value);
+
+  if(!Number.isFinite(number)){
+    return "—";
+  }
+
+  if(number >= 1e9){
+    return (
+      number / 1e9
+    ).toFixed(2) + "B";
+  }
+
+  if(number >= 1e6){
+    return (
+      number / 1e6
+    ).toFixed(2) + "M";
+  }
+
+  if(number >= 1e3){
+    return (
+      number / 1e3
+    ).toFixed(1) + "K";
+  }
+
+  return number.toLocaleString();
 }
 
 function changeText(stock){
-  const change = Number(stock.change);
-  const pct = Number(stock.changePct);
-  if(!Number.isFinite(change) || !Number.isFinite(pct)) return "—";
-  const sign = change >= 0 ? "+" : "";
-  return `${sign}${change.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
+  const change =
+    Number(stock.change);
+
+  const percent =
+    Number(stock.changePct);
+
+  if(
+    !Number.isFinite(change) ||
+    !Number.isFinite(percent)
+  ){
+    return "—";
+  }
+
+  const sign =
+    change >= 0
+      ? "+"
+      : "";
+
+  return (
+    `${sign}${change.toFixed(2)} ` +
+    `(${sign}${percent.toFixed(2)}%)`
+  );
 }
 
 function changeClass(stock){
-  const change = Number(stock.change);
-  if(!Number.isFinite(change) || change === 0) return "neutral";
-  return change > 0 ? "pos" : "neg";
+  const change =
+    Number(stock.change);
+
+  if(
+    !Number.isFinite(change) ||
+    change === 0
+  ){
+    return "neutral";
+  }
+
+  return change > 0
+    ? "pos"
+    : "neg";
 }
 
 function buildRow(stock){
   return `
     <div class="row">
+
       <div class="holding">
         <img
           class="logo"
@@ -173,82 +441,278 @@ function buildRow(stock){
           alt=""
           onerror="this.style.visibility='hidden'"
         >
+
         <div class="holding-text">
-          <div class="symbol">${stock.symbol || "—"}</div>
-          <div class="company">${stock.name || stock.sector || ""}</div>
+          <div class="symbol">
+            ${stock.symbol || "—"}
+          </div>
+
+          <div class="company">
+            ${stock.name || stock.sector || ""}
+          </div>
         </div>
       </div>
-      <div class="value">${money(stock.price)}</div>
-      <div class="value hide-small">${money(stock.open)}</div>
-      <div class="value volume hide-small">${compactVolume(stock.volume)}</div>
-      <div class="value ${changeClass(stock)}">${changeText(stock)}</div>
+
+      <div class="value">
+        ${money(stock.price)}
+      </div>
+
+      <div class="value hide-small">
+        ${money(stock.open)}
+      </div>
+
+      <div class="value volume hide-small">
+        ${compactVolume(stock.volume)}
+      </div>
+
+      <div class="value ${changeClass(stock)}">
+        ${changeText(stock)}
+      </div>
+
     </div>
   `;
 }
 
-function beginPaging(originalRowCount){
-  const track = document.getElementById("track");
-  const firstRow = track.querySelector(".row");
-  if(!firstRow || originalRowCount <= ROWS_VISIBLE) return;
+function formatUpdatedTime(value){
+  if(!value){
+    return "Market Snapshot";
+  }
+
+  const date =
+    new Date(value);
+
+  if(
+    Number.isNaN(
+      date.getTime()
+    )
+  ){
+    return "Market Snapshot";
+  }
+
+  const formatted =
+    date.toLocaleTimeString(
+      "en-US",
+      {
+        timeZone:
+          "America/New_York",
+
+        hour:
+          "numeric",
+
+        minute:
+          "2-digit",
+
+        timeZoneName:
+          "short"
+      }
+    );
+
+  return (
+    "Market Snapshot · Updated " +
+    formatted
+  );
+}
+
+function stopPaging(){
+  if(pagingTimer){
+    clearInterval(
+      pagingTimer
+    );
+
+    pagingTimer = null;
+  }
+}
+
+function beginPaging(
+  originalRowCount
+){
+  stopPaging();
+
+  const track =
+    document.getElementById(
+      "track"
+    );
+
+  const firstRow =
+    track.querySelector(
+      ".row"
+    );
+
+  if(
+    !firstRow ||
+    originalRowCount <=
+      ROWS_VISIBLE
+  ){
+    return;
+  }
 
   let page = 0;
 
-  setInterval(() => {
-    const rowHeight = firstRow.getBoundingClientRect().height;
-    page++;
-    const offsetRows = page * ROWS_VISIBLE;
+  pagingTimer =
+    setInterval(() => {
 
-    track.style.transition =
-      `transform ${TRANSITION_SECONDS}s ease-in-out`;
-    track.style.transform =
-      `translateY(-${offsetRows * rowHeight}px)`;
+      const rowHeight =
+        firstRow
+          .getBoundingClientRect()
+          .height;
 
-    if(offsetRows >= originalRowCount){
-      setTimeout(() => {
-        track.style.transition = "none";
-        track.style.transform = "translateY(0)";
-        page = 0;
-      }, TRANSITION_SECONDS * 1000 + 100);
-    }
-  }, PAGE_SECONDS * 1000);
+      page++;
+
+      const offsetRows =
+        page *
+        ROWS_VISIBLE;
+
+      track.style.transition =
+        `transform ` +
+        `${TRANSITION_SECONDS}s ` +
+        `ease-in-out`;
+
+      track.style.transform =
+        `translateY(` +
+        `-${offsetRows * rowHeight}px` +
+        `)`;
+
+      if(
+        offsetRows >=
+        originalRowCount
+      ){
+        window.setTimeout(
+          () => {
+            track.style.transition =
+              "none";
+
+            track.style.transform =
+              "translateY(0)";
+
+            page = 0;
+          },
+          TRANSITION_SECONDS *
+            1000 +
+            100
+        );
+      }
+
+    }, PAGE_SECONDS * 1000);
 }
 
 async function loadData(){
-  const response = await fetch("/data/stocks.json?cache=" + Date.now());
+  const track =
+    document.getElementById(
+      "track"
+    );
 
-  if(!response.ok){
-    document.getElementById("track").innerHTML =
-      '<div class="error">No stock data cached yet. Visit /api/refresh first.</div>';
-    return;
+  try{
+    const response =
+      await fetch(
+        "/data/stocks.json?cache=" +
+        Date.now(),
+        {
+          cache:"no-store"
+        }
+      );
+
+    if(!response.ok){
+      throw new Error(
+        "No cached stock data is available."
+      );
+    }
+
+    const json =
+      await response.json();
+
+    /*
+     * Hide records whose provider call failed.
+     */
+    const stocks =
+      (json.data || [])
+        .filter(
+          stock =>
+            stock.price !== null
+        );
+
+    document
+      .getElementById(
+        "updated"
+      )
+      .textContent =
+        formatUpdatedTime(
+          json.updatedAt
+        );
+
+    if(!stocks.length){
+      stopPaging();
+
+      track.innerHTML =
+        `<div class="error">
+          No successful market records found.
+        </div>`;
+
+      return;
+    }
+
+    const rowsHtml =
+      stocks
+        .map(buildRow)
+        .join("");
+
+    /*
+     * Duplicate the full list.
+     *
+     * This lets the final group scroll
+     * into the beginning of the duplicate
+     * before resetting invisibly.
+     */
+    track.innerHTML =
+      rowsHtml +
+      rowsHtml;
+
+    track.style.transition =
+      "none";
+
+    track.style.transform =
+      "translateY(0)";
+
+    requestAnimationFrame(
+      () => {
+        beginPaging(
+          stocks.length
+        );
+      }
+    );
+
+  }catch(error){
+    console.error(error);
+
+    stopPaging();
+
+    track.innerHTML =
+      `<div class="error">
+        Market data is temporarily unavailable.
+      </div>`;
+
+    document
+      .getElementById(
+        "updated"
+      )
+      .textContent =
+        "Market Snapshot";
   }
-
-  const json = await response.json();
-  const stocks = (json.data || []).filter(stock => stock.price !== null);
-  const quoteDate = stocks.find(stock => stock.quoteDate)?.quoteDate;
-
-  document.getElementById("updated").textContent =
-    quoteDate
-      ? `Market close · ${new Date(
-          quoteDate + "T12:00:00"
-        ).toLocaleDateString("en-US", {
-          month:"long",day:"numeric",year:"numeric"
-        })}`
-      : "Cached market data";
-
-  if(!stocks.length){
-    document.getElementById("track").innerHTML =
-      '<div class="error">No successful market records found.</div>';
-    return;
-  }
-
-  const track = document.getElementById("track");
-  const rowsHtml = stocks.map(buildRow).join("");
-  track.innerHTML = rowsHtml + rowsHtml;
-
-  requestAnimationFrame(() => beginPaging(stocks.length));
 }
 
+/*
+ * Load immediately.
+ */
 loadData();
+
+/*
+ * Check for an updated cached feed
+ * every two minutes.
+ */
+setInterval(
+  loadData,
+  DISPLAY_REFRESH_MS
+);
 </script>
+
 </body>
 </html>

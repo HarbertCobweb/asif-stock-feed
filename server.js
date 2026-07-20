@@ -20,22 +20,58 @@ app.use(cors({
 app.use(express.json());
 app.use(express.static("public"));
 
-const ALPHAVANTAGE_API_KEY =
-  String(process.env.ALPHAVANTAGE_API_KEY || "").trim();
+const TWELVEDATA_API_KEY =
+  String(process.env.TWELVEDATA_API_KEY || "").trim();
 
 const IMAGE_BASE_URL =
   "https://harbert.auburn.edu/binaries/images/centers/investment-center";
 
 const HOLDINGS = [
-  { symbol: "AMZN", name: "Amazon", sector: "Consumer Discretionary" },
-  { symbol: "GOLD", name: "Barrick Mining", sector: "Materials" },
-  { symbol: "COST", name: "Costco Wholesale", sector: "Consumer Staples" },
-  { symbol: "DE", name: "Deere & Company", sector: "Industrials" },
-  { symbol: "LLY", name: "Eli Lilly", sector: "Health Care" },
-  { symbol: "EQT", name: "EQT Corporation", sector: "Energy" },
-  { symbol: "LIN", name: "Linde", sector: "Materials" },
-  { symbol: "MSFT", name: "Microsoft", sector: "Information Technology" },
-  { symbol: "ORCL", name: "Oracle", sector: "Information Technology" },
+  {
+    symbol: "AMZN",
+    name: "Amazon",
+    sector: "Consumer Discretionary"
+  },
+  {
+    symbol: "GOLD",
+    name: "Barrick Mining",
+    sector: "Materials"
+  },
+  {
+    symbol: "COST",
+    name: "Costco Wholesale",
+    sector: "Consumer Staples"
+  },
+  {
+    symbol: "DE",
+    name: "Deere & Company",
+    sector: "Industrials"
+  },
+  {
+    symbol: "LLY",
+    name: "Eli Lilly",
+    sector: "Health Care"
+  },
+  {
+    symbol: "EQT",
+    name: "EQT Corporation",
+    sector: "Energy"
+  },
+  {
+    symbol: "LIN",
+    name: "Linde",
+    sector: "Materials"
+  },
+  {
+    symbol: "MSFT",
+    name: "Microsoft",
+    sector: "Information Technology"
+  },
+  {
+    symbol: "ORCL",
+    name: "Oracle",
+    sector: "Information Technology"
+  },
   {
     symbol: "PHYS",
     name: "Sprott Physical Gold Trust",
@@ -46,16 +82,36 @@ const HOLDINGS = [
     name: "Sprott Physical Silver Trust",
     sector: "Precious Metals Fund"
   },
-  { symbol: "WM", name: "Waste Management", sector: "Industrials" },
-  { symbol: "UBER", name: "Uber Technologies", sector: "Industrials" },
+  {
+    symbol: "WM",
+    name: "Waste Management",
+    sector: "Industrials"
+  },
+  {
+    symbol: "UBER",
+    name: "Uber Technologies",
+    sector: "Industrials"
+  },
   {
     symbol: "SGDJ",
     name: "Sprott Junior Gold Miners ETF",
     sector: "Precious Metals Fund"
   },
-  { symbol: "AVGO", name: "Broadcom", sector: "Information Technology" },
-  { symbol: "HCA", name: "HCA Healthcare", sector: "Health Care" },
-  { symbol: "PEP", name: "PepsiCo", sector: "Consumer Staples" }
+  {
+    symbol: "AVGO",
+    name: "Broadcom",
+    sector: "Information Technology"
+  },
+  {
+    symbol: "HCA",
+    name: "HCA Healthcare",
+    sector: "Health Care"
+  },
+  {
+    symbol: "PEP",
+    name: "PepsiCo",
+    sector: "Consumer Staples"
+  }
 ];
 
 const DATA_DIR = path.join(
@@ -109,6 +165,25 @@ function createImageUrl(symbol) {
     `${IMAGE_BASE_URL}/` +
     `${String(symbol).toLowerCase()}.png`
   );
+}
+
+function createEmptyStock(
+  holding,
+  errorMessage = null
+) {
+  return {
+    symbol: holding.symbol,
+    name: holding.name,
+    sector: holding.sector,
+    image: createImageUrl(holding.symbol),
+    price: null,
+    open: null,
+    volume: null,
+    change: null,
+    changePct: null,
+    quoteDate: null,
+    error: errorMessage
+  };
 }
 
 function readCache() {
@@ -167,25 +242,6 @@ function getLatestCachedQuoteDate() {
   return dates[0] || null;
 }
 
-function createEmptyStock(
-  holding,
-  errorMessage = null
-) {
-  return {
-    symbol: holding.symbol,
-    name: holding.name,
-    sector: holding.sector,
-    image: createImageUrl(holding.symbol),
-    price: null,
-    open: null,
-    volume: null,
-    change: null,
-    changePct: null,
-    quoteDate: null,
-    error: errorMessage
-  };
-}
-
 function stockDataToXml(payload) {
   const rows = payload.data || [];
 
@@ -211,35 +267,44 @@ function stockDataToXml(payload) {
 </items>`;
 }
 
-async function fetchAlphaVantageDaily(holding) {
-  if (!ALPHAVANTAGE_API_KEY) {
+async function fetchTwelveData(holdings) {
+  if (!TWELVEDATA_API_KEY) {
     throw new Error(
-      "ALPHAVANTAGE_API_KEY is missing."
+      "TWELVEDATA_API_KEY is missing from the environment variables."
     );
   }
 
-  const url = new URL(
-    "https://www.alphavantage.co/query"
-  );
+  const symbols = holdings
+    .map(holding => holding.symbol)
+    .join(",");
 
-  url.searchParams.set(
-    "function",
-    "TIME_SERIES_DAILY"
+  const url = new URL(
+    "https://api.twelvedata.com/time_series"
   );
 
   url.searchParams.set(
     "symbol",
-    holding.symbol
+    symbols
+  );
+
+  url.searchParams.set(
+    "interval",
+    "1day"
   );
 
   url.searchParams.set(
     "outputsize",
-    "compact"
+    "2"
+  );
+
+  url.searchParams.set(
+    "format",
+    "JSON"
   );
 
   url.searchParams.set(
     "apikey",
-    ALPHAVANTAGE_API_KEY
+    TWELVEDATA_API_KEY
   );
 
   const response = await fetch(url, {
@@ -253,10 +318,10 @@ async function fetchAlphaVantageDaily(holding) {
 
   if (!response.ok) {
     throw new Error(
-      `Alpha Vantage request failed for ` +
-      `${holding.symbol}: ` +
+      `Twelve Data request failed: ` +
       `${response.status} ` +
-      `${response.statusText}`
+      `${response.statusText} — ` +
+      responseText
     );
   }
 
@@ -266,150 +331,119 @@ async function fetchAlphaVantageDaily(holding) {
     payload = JSON.parse(responseText);
   } catch {
     throw new Error(
-      `Alpha Vantage returned invalid JSON ` +
-      `for ${holding.symbol}.`
+      `Twelve Data returned invalid JSON: ` +
+      responseText
     );
   }
 
-  if (payload["Error Message"]) {
+  if (payload.status === "error") {
     throw new Error(
-      `Alpha Vantage symbol error for ` +
-      `${holding.symbol}: ` +
-      payload["Error Message"]
-    );
-  }
-
-  if (payload.Note) {
-    throw new Error(
-      `Alpha Vantage rate limit reached ` +
-      `for ${holding.symbol}: ` +
-      payload.Note
-    );
-  }
-
-  if (payload.Information) {
-    throw new Error(
-      `Alpha Vantage response for ` +
-      `${holding.symbol}: ` +
-      payload.Information
-    );
-  }
-
-  const series =
-    payload["Time Series (Daily)"];
-
-  if (
-    !series ||
-    typeof series !== "object"
-  ) {
-    throw new Error(
-      `No daily time series returned ` +
-      `for ${holding.symbol}.`
-    );
-  }
-
-  const dates = Object.keys(series)
-    .sort((a, b) => b.localeCompare(a));
-
-  if (dates.length < 2) {
-    throw new Error(
-      `Not enough daily records returned ` +
-      `for ${holding.symbol}.`
-    );
-  }
-
-  const latestDate = dates[0];
-  const previousDate = dates[1];
-
-  const latest = series[latestDate];
-  const previous = series[previousDate];
-
-  const price = normalizeNumber(
-    latest["4. close"]
-  );
-
-  const open = normalizeNumber(
-    latest["1. open"]
-  );
-
-  const volume = normalizeNumber(
-    latest["5. volume"]
-  );
-
-  const previousClose = normalizeNumber(
-    previous["4. close"]
-  );
-
-  if (
-    price === null ||
-    previousClose === null
-  ) {
-    throw new Error(
-      `Incomplete daily quote data returned ` +
-      `for ${holding.symbol}.`
-    );
-  }
-
-  const change =
-    price - previousClose;
-
-  const changePct =
-    previousClose !== 0
-      ? (change / previousClose) * 100
-      : null;
-
-  return {
-    symbol: holding.symbol,
-    name: holding.name,
-    sector: holding.sector,
-    image: createImageUrl(
-      holding.symbol
-    ),
-    price,
-    open,
-    volume,
-    change,
-    changePct,
-    quoteDate: latestDate
-  };
-}
-
-async function fetchStockData(holdings) {
-  if (!ALPHAVANTAGE_API_KEY) {
-    throw new Error(
-      "ALPHAVANTAGE_API_KEY is missing " +
-      "from the environment variables."
+      `Twelve Data error: ` +
+      `${payload.message || "Unknown error"}`
     );
   }
 
   const results = [];
-  const errors = [];
 
   for (const holding of holdings) {
-    try {
-      const quote =
-        await fetchAlphaVantageDaily(holding);
+    const symbolData =
+      payload[holding.symbol];
 
-      results.push(quote);
-
-      console.log(
-        `Loaded ${holding.symbol}`
-      );
-    } catch (error) {
-      console.error(error.message);
-
-      errors.push({
-        symbol: holding.symbol,
-        error: error.message
-      });
-
+    if (!symbolData) {
       results.push(
         createEmptyStock(
           holding,
-          error.message
+          `No response object returned for ${holding.symbol}.`
         )
       );
+
+      continue;
     }
+
+    if (symbolData.status === "error") {
+      results.push(
+        createEmptyStock(
+          holding,
+          symbolData.message ||
+          `Twelve Data returned an error for ${holding.symbol}.`
+        )
+      );
+
+      continue;
+    }
+
+    const values = symbolData.values;
+
+    if (
+      !Array.isArray(values) ||
+      values.length < 2
+    ) {
+      results.push(
+        createEmptyStock(
+          holding,
+          `Not enough daily records returned for ${holding.symbol}.`
+        )
+      );
+
+      continue;
+    }
+
+    const latest = values[0];
+    const previous = values[1];
+
+    const price = normalizeNumber(
+      latest.close
+    );
+
+    const open = normalizeNumber(
+      latest.open
+    );
+
+    const volume = normalizeNumber(
+      latest.volume
+    );
+
+    const previousClose = normalizeNumber(
+      previous.close
+    );
+
+    if (
+      price === null ||
+      previousClose === null
+    ) {
+      results.push(
+        createEmptyStock(
+          holding,
+          `Incomplete quote data returned for ${holding.symbol}.`
+        )
+      );
+
+      continue;
+    }
+
+    const change =
+      price - previousClose;
+
+    const changePct =
+      previousClose !== 0
+        ? (change / previousClose) * 100
+        : null;
+
+    results.push({
+      symbol: holding.symbol,
+      name: holding.name,
+      sector: holding.sector,
+      image: createImageUrl(
+        holding.symbol
+      ),
+      price,
+      open,
+      volume,
+      change,
+      changePct,
+      quoteDate:
+        latest.datetime || null
+    });
   }
 
   const successfulResults =
@@ -418,38 +452,64 @@ async function fetchStockData(holdings) {
     );
 
   if (successfulResults.length === 0) {
+    const firstError =
+      results.find(stock => stock.error)?.error;
+
     throw new Error(
-      `All Alpha Vantage requests failed. ` +
+      `All Twelve Data symbols failed. ` +
       `First error: ${
-        errors[0]?.error ||
-        "Unknown Alpha Vantage error"
+        firstError ||
+        "Unknown Twelve Data error"
       }`
     );
   }
 
-  return results;
+  return {
+    results,
+    creditsUsed:
+      response.headers.get(
+        "api-credits-used"
+      ),
+    creditsLeft:
+      response.headers.get(
+        "api-credits-left"
+      )
+  };
 }
 
 async function createAndSaveStockPayload(
   holdings = HOLDINGS
 ) {
-  const stockData =
-    await fetchStockData(holdings);
+  const {
+    results,
+    creditsUsed,
+    creditsLeft
+  } = await fetchTwelveData(holdings);
 
   const payload = {
     updatedAt: new Date().toISOString(),
     source:
-      "Alpha Vantage — Daily Time Series",
-    count: stockData.length,
+      "Twelve Data — Daily Time Series",
+    count: results.length,
     successfulCount:
-      stockData.filter(
+      results.filter(
         stock => stock.price !== null
       ).length,
     symbols:
       holdings.map(
         holding => holding.symbol
       ),
-    data: stockData
+    apiUsage: {
+      creditsUsed:
+        creditsUsed !== null
+          ? Number(creditsUsed)
+          : null,
+      creditsLeft:
+        creditsLeft !== null
+          ? Number(creditsLeft)
+          : null
+    },
+    data: results
   };
 
   fs.writeFileSync(
@@ -465,69 +525,12 @@ async function createAndSaveStockPayload(
 }
 
 /*
- * Test one symbol.
- *
- * Uses one Alpha Vantage request.
- * Does not overwrite stocks.json.
- *
- * Example:
- * /api/test/AMZN
- */
-app.get(
-  "/api/test/:symbol",
-  async (req, res) => {
-    const symbol = String(
-      req.params.symbol || ""
-    )
-      .trim()
-      .toUpperCase();
-
-    const holding =
-      HOLDINGS.find(
-        item => item.symbol === symbol
-      );
-
-    if (!holding) {
-      return res.status(404).json({
-        error:
-          "Symbol is not in the holdings list.",
-        availableSymbols:
-          HOLDINGS.map(
-            item => item.symbol
-          )
-      });
-    }
-
-    try {
-      const quote =
-        await fetchAlphaVantageDaily(holding);
-
-      res.json({
-        success: true,
-        source:
-          "Alpha Vantage — Daily Time Series",
-        requestCount: 1,
-        data: quote
-      });
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        error: "Test failed",
-        symbol,
-        detail: error.message
-      });
-    }
-  }
-);
-
-/*
  * Full refresh.
  *
- * Uses 17 requests unless today's cache already exists.
+ * Normally uses one batch HTTP request.
  *
- * Use ?force=1 only when you intentionally need to
- * bypass the daily cache protection.
+ * Use ?force=1 only when you intentionally
+ * need to bypass the daily cache protection.
  */
 app.get(
   "/api/refresh",
@@ -546,14 +549,19 @@ app.get(
         cached: true,
         message:
           "Today's stock cache already exists. " +
-          "No Alpha Vantage requests were used.",
-        source: payload?.source,
-        updatedAt: payload?.updatedAt,
+          "No Twelve Data request was made.",
+        source:
+          payload?.source,
+        updatedAt:
+          payload?.updatedAt,
         latestQuoteDate:
           getLatestCachedQuoteDate(),
-        count: payload?.count,
+        count:
+          payload?.count,
         successfulCount:
           payload?.successfulCount,
+        apiUsage:
+          payload?.apiUsage || null,
         jsonUrl:
           "/data/stocks.json",
         ixmlUrl:
@@ -573,15 +581,18 @@ app.get(
         forced: forceRefresh,
         message:
           "Stock cache refreshed.",
-        source: payload.source,
-        updatedAt: payload.updatedAt,
+        source:
+          payload.source,
+        updatedAt:
+          payload.updatedAt,
         latestQuoteDate:
           getLatestCachedQuoteDate(),
-        count: payload.count,
+        count:
+          payload.count,
         successfulCount:
           payload.successfulCount,
-        requestsUsed:
-          HOLDINGS.length,
+        apiUsage:
+          payload.apiUsage,
         jsonUrl:
           "/data/stocks.json",
         ixmlUrl:
@@ -593,8 +604,88 @@ app.get(
       console.error(error);
 
       res.status(500).json({
-        error: "Refresh failed",
-        detail: error.message
+        error:
+          "Refresh failed",
+        detail:
+          error.message
+      });
+    }
+  }
+);
+
+/*
+ * Test a subset of configured symbols.
+ *
+ * Example:
+ * /api/test/AMZN
+ * /api/test/AMZN,MSFT
+ *
+ * This does not overwrite stocks.json.
+ */
+app.get(
+  "/api/test/:symbols",
+  async (req, res) => {
+    const requestedSymbols =
+      String(req.params.symbols || "")
+        .split(",")
+        .map(symbol =>
+          symbol.trim().toUpperCase()
+        )
+        .filter(Boolean);
+
+    const holdings =
+      HOLDINGS.filter(holding =>
+        requestedSymbols.includes(
+          holding.symbol
+        )
+      );
+
+    if (!holdings.length) {
+      return res.status(404).json({
+        error:
+          "No requested symbols are in the holdings list.",
+        availableSymbols:
+          HOLDINGS.map(
+            holding => holding.symbol
+          )
+      });
+    }
+
+    try {
+      const {
+        results,
+        creditsUsed,
+        creditsLeft
+      } = await fetchTwelveData(holdings);
+
+      res.json({
+        success: true,
+        source:
+          "Twelve Data — Daily Time Series",
+        requestedSymbols:
+          holdings.map(
+            holding => holding.symbol
+          ),
+        apiUsage: {
+          creditsUsed:
+            creditsUsed !== null
+              ? Number(creditsUsed)
+              : null,
+          creditsLeft:
+            creditsLeft !== null
+              ? Number(creditsLeft)
+              : null
+        },
+        data: results
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        error:
+          "Test failed",
+        detail:
+          error.message
       });
     }
   }
@@ -677,16 +768,17 @@ app.get(
 
     res.json({
       running: true,
-      provider: "Alpha Vantage",
-      function:
-        "TIME_SERIES_DAILY",
+      provider:
+        "Twelve Data",
+      endpoint:
+        "time_series",
+      interval:
+        "1day",
       apiKeyConfigured:
         Boolean(
-          ALPHAVANTAGE_API_KEY
+          TWELVEDATA_API_KEY
         ),
       holdingCount:
-        HOLDINGS.length,
-      requestsPerFullRefresh:
         HOLDINGS.length,
       cacheExists:
         Boolean(payload),
@@ -694,19 +786,24 @@ app.get(
         isCacheFromToday(),
       latestQuoteDate:
         getLatestCachedQuoteDate(),
-      cache: payload
-        ? {
-            updatedAt:
-              payload.updatedAt,
-            count:
-              payload.count,
-            successfulCount:
-              payload.successfulCount
-          }
-        : null,
+      cache:
+        payload
+          ? {
+              updatedAt:
+                payload.updatedAt,
+              count:
+                payload.count,
+              successfulCount:
+                payload.successfulCount,
+              apiUsage:
+                payload.apiUsage || null
+            }
+          : null,
       routes: {
         test:
           "/api/test/AMZN",
+        batchTest:
+          "/api/test/AMZN,MSFT",
         refresh:
           "/api/refresh",
         forcedRefresh:
@@ -726,9 +823,9 @@ app.listen(PORT, () => {
   );
 
   console.log(
-    `Alpha Vantage API key configured: ` +
+    `Twelve Data API key configured: ` +
     `${Boolean(
-      ALPHAVANTAGE_API_KEY
+      TWELVEDATA_API_KEY
     )}`
   );
 });

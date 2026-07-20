@@ -33,9 +33,10 @@ const HOLDINGS = [
     sector: "Consumer Discretionary"
   },
   {
-    symbol: "GOLD",
+    symbol: "B",
     name: "Barrick Mining",
-    sector: "Materials"
+    sector: "Materials",
+    imageSymbol: "gold"
   },
   {
     symbol: "COST",
@@ -128,10 +129,6 @@ const STOCKS_JSON_FILE = path.join(
 const BATCH_SIZE = 6;
 const BATCH_DELAY_MS = 65 * 1000;
 
-/*
- * Prevent refreshes from starting too close together.
- * The full refresh itself takes about 130 seconds.
- */
 const MIN_REFRESH_INTERVAL_MS =
   8 * 60 * 1000;
 
@@ -140,10 +137,6 @@ if (!fs.existsSync(DATA_DIR)) {
     recursive: true
   });
 }
-
-/*
- * General utilities
- */
 
 function sleep(milliseconds) {
   return new Promise(resolve => {
@@ -183,10 +176,16 @@ function normalizeNumber(value) {
     : null;
 }
 
-function createImageUrl(symbol) {
+function createImageUrl(
+  symbol,
+  imageSymbol = null
+) {
+  const filename =
+    imageSymbol || symbol;
+
   return (
     `${IMAGE_BASE_URL}/` +
-    `${String(symbol).toLowerCase()}.png`
+    `${String(filename).toLowerCase()}.png`
   );
 }
 
@@ -198,8 +197,10 @@ function createEmptyStock(
     symbol: holding.symbol,
     name: holding.name,
     sector: holding.sector,
+
     image: createImageUrl(
-      holding.symbol
+      holding.symbol,
+      holding.imageSymbol
     ),
 
     price: null,
@@ -215,10 +216,6 @@ function createEmptyStock(
     error: errorMessage
   };
 }
-
-/*
- * Cache utilities
- */
 
 function readCache() {
   if (
@@ -288,10 +285,6 @@ function getMinutesSinceRefresh() {
     (60 * 1000)
   );
 }
-
-/*
- * Eastern Time and market-hours logic
- */
 
 function getEasternTimeParts(
   date = new Date()
@@ -380,9 +373,7 @@ function isMarketRefreshWindow() {
   const eastern =
     getEasternTimeParts();
 
-  if (
-    !isWeekdayEastern()
-  ) {
+  if (!isWeekdayEastern()) {
     return false;
   }
 
@@ -390,13 +381,6 @@ function isMarketRefreshWindow() {
     eastern.hour * 60 +
     eastern.minute;
 
-  /*
-   * Start at 9:30 AM ET.
-   *
-   * Continue through 4:10 PM ET so the
-   * final cron after market close can
-   * capture the closing snapshot.
-   */
   const startMinutes =
     9 * 60 + 30;
 
@@ -442,10 +426,6 @@ function getEasternDisplayTime() {
   ).format(new Date());
 }
 
-/*
- * XML generation
- */
-
 function stockDataToXml(payload) {
   const rows =
     payload.data || [];
@@ -475,11 +455,6 @@ function stockDataToXml(payload) {
   </item>`).join("")}
 </items>`;
 }
-
-/*
- * Convert one Twelve Data quote response
- * to the stock feed structure.
- */
 
 function convertQuoteToStock(
   holding,
@@ -579,7 +554,8 @@ function convertQuoteToStock(
 
     image:
       createImageUrl(
-        holding.symbol
+        holding.symbol,
+        holding.imageSymbol
       ),
 
     price,
@@ -604,10 +580,6 @@ function convertQuoteToStock(
     error: null
   };
 }
-
-/*
- * Fetch one batch from Twelve Data.
- */
 
 async function fetchQuoteBatch(
   holdings
@@ -768,10 +740,6 @@ async function fetchQuoteBatch(
   };
 }
 
-/*
- * Fetch all holdings in three batches.
- */
-
 async function fetchAllQuotes() {
   if (
     !TWELVEDATA_API_KEY
@@ -901,10 +869,6 @@ async function fetchAllQuotes() {
     }
   }
 
-  /*
-   * Restore the portfolio's original order.
-   */
-
   const resultMap =
     new Map(
       allResults.map(
@@ -963,10 +927,6 @@ async function fetchAllQuotes() {
   };
 }
 
-/*
- * Save the refreshed cache.
- */
-
 async function createAndSaveStockPayload() {
   const {
     results,
@@ -1023,20 +983,11 @@ async function createAndSaveStockPayload() {
   return payload;
 }
 
-/*
- * Refresh route
- */
-
 app.get(
   "/api/refresh",
   async (req, res) => {
     const forceRefresh =
       req.query.force === "1";
-
-    /*
-     * Do not use credits outside the
-     * normal market refresh window.
-     */
 
     if (
       !forceRefresh &&
@@ -1076,10 +1027,6 @@ app.get(
           "/data/stocks.xml"
       });
     }
-
-    /*
-     * Prevent overlapping or duplicate runs.
-     */
 
     if (
       !forceRefresh &&
@@ -1175,11 +1122,6 @@ app.get(
   }
 );
 
-/*
- * Test one or more symbols without
- * overwriting the main cache.
- */
-
 app.get(
   "/api/test/:symbols",
   async (req, res) => {
@@ -1219,11 +1161,6 @@ app.get(
             )
         });
     }
-
-    /*
-     * Keep tests below the per-minute
-     * free-plan credit window.
-     */
 
     if (
       holdings.length >
@@ -1282,10 +1219,6 @@ app.get(
   }
 );
 
-/*
- * Public JSON
- */
-
 app.get(
   "/data/stocks.json",
   (req, res) => {
@@ -1304,10 +1237,6 @@ app.get(
     res.json(payload);
   }
 );
-
-/*
- * Public XML/iXML
- */
 
 function sendXmlFeed(
   req,
@@ -1351,10 +1280,6 @@ app.get(
   sendXmlFeed
 );
 
-/*
- * Diagnostics
- */
-
 app.get(
   "/api/status",
   (req, res) => {
@@ -1389,6 +1314,11 @@ app.get(
 
       holdingCount:
         HOLDINGS.length,
+
+      symbols:
+        HOLDINGS.map(
+          holding => holding.symbol
+        ),
 
       batchSize:
         BATCH_SIZE,
@@ -1428,11 +1358,11 @@ app.get(
           : null,
 
       routes: {
-        test:
-          "/api/test/AMZN",
+        testBarrick:
+          "/api/test/B",
 
         batchTest:
-          "/api/test/AMZN,MSFT",
+          "/api/test/AMZN,B",
 
         refresh:
           "/api/refresh",

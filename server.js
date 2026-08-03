@@ -126,11 +126,14 @@ const STOCKS_JSON_FILE = path.join(
   "stocks.json"
 );
 
-const BATCH_SIZE = 6;
-const BATCH_DELAY_MS = 65 * 1000;
+const BATCH_SIZE = 5;
+const RATE_LIMIT_BUFFER_MS = 5 * 1000;
+const MAX_BATCH_RETRIES = 2;
 
 const MIN_REFRESH_INTERVAL_MS =
   8 * 60 * 1000;
+
+let activeRefreshPromise = null;
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, {
@@ -142,6 +145,26 @@ function sleep(milliseconds) {
   return new Promise(resolve => {
     setTimeout(resolve, milliseconds);
   });
+}
+
+function millisecondsUntilNextMinute() {
+  const now = new Date();
+
+  return (
+    (60 - now.getUTCSeconds()) * 1000 -
+    now.getUTCMilliseconds() +
+    RATE_LIMIT_BUFFER_MS
+  );
+}
+
+async function waitForNextCreditWindow(reason = "rate limit") {
+  const waitMs = millisecondsUntilNextMinute();
+
+  console.log(
+    `Waiting ${Math.ceil(waitMs / 1000)} seconds for the next Twelve Data credit window (${reason})...`
+  );
+
+  await sleep(waitMs);
 }
 
 function escapeXml(value) {
@@ -582,7 +605,8 @@ function convertQuoteToStock(
 }
 
 async function fetchQuoteBatch(
-  holdings
+  holdings,
+  attempt = 0
 ) {
   const symbols =
     holdings
@@ -608,7 +632,10 @@ async function fetchQuoteBatch(
   );
 
   console.log(
-    `Requesting quote batch: ${symbols}`
+    `Requesting quote batch: ${symbols}` +
+    (attempt > 0
+      ? ` (retry ${attempt} of ${MAX_BATCH_RETRIES})`
+      : "")
   );
 
   const response =
@@ -625,16 +652,7 @@ async function fetchQuoteBatch(
   const responseText =
     await response.text();
 
-  if (!response.ok) {
-    throw new Error(
-      `Twelve Data quote request failed: ` +
-      `${response.status} ` +
-      `${response.statusText} — ` +
-      responseText
-    );
-  }
-
-  let payload;
+  let payload = null;
 
   try {
     payload =
@@ -642,8 +660,47 @@ async function fetchQuoteBatch(
         responseText
       );
   } catch {
+    if (!response.ok) {
+      throw new Error(
+        `Twelve Data quote request failed: ` +
+        `${response.status} ` +
+        `${response.statusText} — ` +
+        responseText
+      );
+    }
+
     throw new Error(
       `Twelve Data returned invalid JSON: ` +
+      responseText
+    );
+  }
+
+  const isRateLimitError =
+    response.status === 429 ||
+    payload?.code === 429 ||
+    /api credits|too many requests|rate limit/i.test(
+      String(payload?.message || "")
+    );
+
+  if (
+    isRateLimitError &&
+    attempt < MAX_BATCH_RETRIES
+  ) {
+    await waitForNextCreditWindow(
+      `429 received for ${symbols}`
+    );
+
+    return fetchQuoteBatch(
+      holdings,
+      attempt + 1
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `Twelve Data quote request failed: ` +
+      `${response.status} ` +
+      `${response.statusText} — ` +
       responseText
     );
   }
@@ -775,6 +832,12 @@ async function fetchAllQuotes() {
     const batch =
       batches[index];
 
+    if (index > 0) {
+      await waitForNextCreditWindow(
+        `before batch ${index + 1}`
+      );
+    }
+
     console.log(
       `Starting batch ${index + 1} of ${batches.length}: ` +
       batch
@@ -853,19 +916,6 @@ async function fetchAllQuotes() {
         error:
           error.message
       });
-    }
-
-    if (
-      index <
-      batches.length - 1
-    ) {
-      console.log(
-        `Waiting 65 seconds before batch ${index + 2}...`
-      );
-
-      await sleep(
-        BATCH_DELAY_MS
-      );
     }
   }
 
@@ -983,6 +1033,20 @@ async function createAndSaveStockPayload() {
   return payload;
 }
 
+function getOrCreateRefreshPromise() {
+  if (activeRefreshPromise) {
+    return activeRefreshPromise;
+  }
+
+  activeRefreshPromise =
+    createAndSaveStockPayload()
+      .finally(() => {
+        activeRefreshPromise = null;
+      });
+
+  return activeRefreshPromise;
+}
+
 app.get(
   "/api/refresh",
   async (req, res) => {
@@ -1067,13 +1131,18 @@ app.get(
     }
 
     try {
+      const alreadyRunning =
+        Boolean(activeRefreshPromise);
+
       const payload =
-        await createAndSaveStockPayload();
+        await getOrCreateRefreshPromise();
 
       res.json({
         success: true,
         skipped: false,
         forced: forceRefresh,
+        joinedExistingRefresh:
+          alreadyRunning,
 
         message:
           "Near-real-time market snapshot refreshed.",
@@ -1171,6 +1240,15 @@ app.get(
         .json({
           error:
             `Test a maximum of ${BATCH_SIZE} symbols at a time.`
+        });
+    }
+
+    if (activeRefreshPromise) {
+      return res
+        .status(409)
+        .json({
+          error:
+            "A full stock refresh is already running. Try the test again after it finishes."
         });
     }
 
@@ -1323,12 +1401,17 @@ app.get(
       batchSize:
         BATCH_SIZE,
 
-      batchDelaySeconds:
-        BATCH_DELAY_MS /
-        1000,
+      batchDelayStrategy:
+        "Wait until the next UTC minute plus a 5-second buffer",
+
+      maxBatchRetries:
+        MAX_BATCH_RETRIES,
+
+      refreshInProgress:
+        Boolean(activeRefreshPromise),
 
       expectedRefreshDurationSeconds:
-        130,
+        195,
 
       minimumRefreshIntervalMinutes:
         MIN_REFRESH_INTERVAL_MS /

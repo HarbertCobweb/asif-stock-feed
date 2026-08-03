@@ -1050,15 +1050,25 @@ function getOrCreateRefreshPromise() {
 app.get(
   "/api/refresh",
   async (req, res) => {
+    const forceValue =
+      String(req.query.force || "")
+        .trim()
+        .toLowerCase();
+
     const forceRefresh =
-      req.query.force === "1";
+      forceValue === "1" ||
+      forceValue === "true";
+
+    const cachedPayload =
+      readCache();
 
     if (
       !forceRefresh &&
-      !isMarketRefreshWindow()
+      !isMarketRefreshWindow() &&
+      cachedPayload
     ) {
       const payload =
-        readCache();
+        cachedPayload;
 
       return res.json({
         success: true,
@@ -1090,6 +1100,17 @@ app.get(
         xmlUrl:
           "/data/stocks.xml"
       });
+    }
+
+    if (
+      !forceRefresh &&
+      !isMarketRefreshWindow() &&
+      !cachedPayload
+    ) {
+      console.warn(
+        "No cached stock data is available outside the normal market window. " +
+        "Running a recovery refresh instead of returning an empty response."
+      );
     }
 
     if (
@@ -1451,7 +1472,7 @@ app.get(
           "/api/refresh",
 
         forcedRefresh:
-          "/api/refresh?force=1",
+          "/api/refresh?force=true",
 
         json:
           "/data/stocks.json",

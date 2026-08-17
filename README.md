@@ -1,28 +1,66 @@
-# ASIF Stock Feed — Alpha Vantage
+# ASIF Stock Feed
 
-Uses Alpha Vantage `TIME_SERIES_DAILY` to create cached JSON/XML feeds and a
-16:9 six-row digital signage display.
+This service refreshes the ASIF stock snapshot from Twelve Data and publishes the latest JSON/XML feeds to GitHub Pages.
 
-## Render environment variable
+## Recommended production setup
 
-ALPHAVANTAGE_API_KEY
+### 22Miles display URL
 
-## Render commands
+Use the static GitHub Pages display, not the Render web-service URL:
 
-Build: npm install
-Start: npm start
+`https://harbertcobweb.github.io/asif-stock-feed/`
 
-## Routes
+The GitHub Pages display reads:
 
-- `/api/refresh`
-- `/api/status`
-- `/data/stocks.json`
-- `/data/stocks.xml`
-- `/data/stocks.ixml`
+`https://harbertcobweb.github.io/asif-stock-feed/feeds/stock-feed.json`
 
-## Daily cron command
+This keeps normal signage traffic off the Render free web service so the Render instance can spin down between scheduled refreshes.
 
-node -e "fetch('https://asif-stock-feed.onrender.com/api/refresh').then(r=>r.text()).then(console.log)"
+### Render web service environment variables
 
-Do not repeatedly run `/api/refresh` on the free plan. A full refresh uses
-17 requests, and Alpha Vantage's standard allowance is 25 requests per day.
+Required for stock data:
+
+- `TWELVEDATA_API_KEY`
+
+Required for automatic GitHub publishing:
+
+- `GITHUB_OWNER=HarbertCobweb`
+- `GITHUB_REPO=asif-stock-feed`
+- `GITHUB_BRANCH=main`
+- `GITHUB_TOKEN=<GitHub token with Contents: Read and write access to this repository>`
+
+Optional feed paths:
+
+- `OUTPUT_JSON_PATH=feeds/stock-feed.json`
+- `OUTPUT_XML_PATH=feeds/stock-feed.xml`
+
+After these variables are configured, every successful `/api/refresh` request also syncs the cached JSON and XML feeds to GitHub. If the content is unchanged, no unnecessary GitHub commit is created.
+
+You can verify the publishing configuration at:
+
+`https://asif-stock-feed.onrender.com/api/status`
+
+### Render Cron Job
+
+The existing weekday schedule can continue to call `/api/refresh`. Use `curl -f` so Render marks the cron run failed if the refresh or GitHub publish returns an HTTP error:
+
+```bash
+curl -fsS https://asif-stock-feed.onrender.com/api/refresh
+```
+
+The application refresh window is 9:30 AM–4:10 PM Eastern on weekdays. Calls outside that window reuse cached data but will still attempt to sync that cached feed to GitHub.
+
+## Local commands
+
+```bash
+npm start
+npm run check
+```
+
+The older standalone publishing command remains available if needed:
+
+```bash
+npm run publish-static
+```
+
+That standalone command additionally requires `SOURCE_JSON_URL` and `SOURCE_XML_URL`. Normal production refreshes do not require those variables anymore.

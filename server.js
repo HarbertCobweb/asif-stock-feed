@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import fs from "fs";
 import path from "path";
 import cors from "cors";
+import { publishStaticFeeds, getGitHubPublishConfig } from "./scripts/github-publisher.js";
 
 dotenv.config();
 
@@ -477,6 +478,13 @@ function stockDataToXml(payload) {
     <quoteTimestamp>${escapeXml(stock.quoteTimestamp)}</quoteTimestamp>
   </item>`).join("")}
 </items>`;
+}
+
+async function publishCurrentPayload(payload) {
+  return await publishStaticFeeds({
+    payload,
+    xml: stockDataToXml(payload)
+  });
 }
 
 function convertQuoteToStock(
@@ -1070,9 +1078,14 @@ app.get(
       const payload =
         cachedPayload;
 
-      return res.json({
+      try {
+        const staticPublish =
+          await publishCurrentPayload(payload);
+
+        return res.json({
         success: true,
         skipped: true,
+        staticPublish,
 
         reason:
           "Outside the weekday market refresh window.",
@@ -1099,7 +1112,15 @@ app.get(
 
         xmlUrl:
           "/data/stocks.xml"
-      });
+        });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+          error: "Static feed publish failed",
+          detail: error.message,
+          refreshSkipped: true
+        });
+      }
     }
 
     if (
@@ -1120,9 +1141,14 @@ app.get(
       const payload =
         readCache();
 
-      return res.json({
+      try {
+        const staticPublish =
+          await publishCurrentPayload(payload);
+
+        return res.json({
         success: true,
         skipped: true,
+        staticPublish,
 
         reason:
           "The stock cache was refreshed recently.",
@@ -1148,7 +1174,15 @@ app.get(
 
         xmlUrl:
           "/data/stocks.xml"
-      });
+        });
+      } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+          error: "Static feed publish failed",
+          detail: error.message,
+          refreshSkipped: true
+        });
+      }
     }
 
     try {
@@ -1158,8 +1192,12 @@ app.get(
       const payload =
         await getOrCreateRefreshPromise();
 
+      const staticPublish =
+        await publishCurrentPayload(payload);
+
       res.json({
         success: true,
+        staticPublish,
         skipped: false,
         forced: forceRefresh,
         joinedExistingRefresh:
@@ -1413,6 +1451,9 @@ app.get(
 
       holdingCount:
         HOLDINGS.length,
+
+      staticPublishing:
+        getGitHubPublishConfig(),
 
       symbols:
         HOLDINGS.map(

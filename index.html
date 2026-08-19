@@ -305,11 +305,12 @@ async function loadData(){
   const json = await res.json();
   const stocks = json.data || [];
 
-  document.getElementById("updated").textContent =
-    "Updated " + new Date(json.updatedAt).toLocaleTimeString([], {
-      hour:"numeric",
-      minute:"2-digit"
-    });
+document.getElementById("updated").textContent =
+  "Updated " + new Date(json.updatedAt).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Chicago"
+  });
 
   const track = document.getElementById("track");
 

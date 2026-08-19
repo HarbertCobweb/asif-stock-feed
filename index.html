@@ -221,6 +221,10 @@ h1{
 const ROWS_VISIBLE = 6;
 const PAGE_SECONDS = 9;
 const TRANSITION_SECONDS = 2.2;
+const DATA_POLL_MS = 60 * 1000;
+
+let pagingTimer = null;
+let pagingResetTimer = null;
 
 function money(value){
   const num = Number(value);
@@ -270,13 +274,26 @@ function startPaging(){
   const track = document.getElementById("track");
   const rows = Array.from(track.querySelectorAll(".row"));
 
+  if(pagingTimer){
+    clearInterval(pagingTimer);
+    pagingTimer = null;
+  }
+
+  if(pagingResetTimer){
+    clearTimeout(pagingResetTimer);
+    pagingResetTimer = null;
+  }
+
+  track.style.transition = "none";
+  track.style.transform = "translateY(0)";
+
   if(rows.length <= ROWS_VISIBLE) return;
 
   const rowHeight = rows[0].offsetHeight;
   const totalOriginalRows = rows.length / 2;
   let page = 0;
 
-  setInterval(() => {
+  pagingTimer = setInterval(() => {
     page++;
 
     const offsetRows = page * ROWS_VISIBLE;
@@ -284,7 +301,7 @@ function startPaging(){
     track.style.transform = `translateY(-${offsetRows * rowHeight}px)`;
 
     if(offsetRows >= totalOriginalRows){
-      setTimeout(() => {
+      pagingResetTimer = setTimeout(() => {
         track.style.transition = "none";
         track.style.transform = "translateY(0)";
         page = 0;
@@ -305,12 +322,12 @@ async function loadData(){
   const json = await res.json();
   const stocks = json.data || [];
 
-document.getElementById("updated").textContent =
-  "Updated " + new Date(json.updatedAt).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "America/Chicago"
-  });
+  document.getElementById("updated").textContent =
+    "Updated " + new Date(json.updatedAt).toLocaleTimeString([], {
+      hour:"numeric",
+      minute:"2-digit",
+      timeZone:"America/Chicago"
+    });
 
   const track = document.getElementById("track");
 
@@ -326,6 +343,7 @@ document.getElementById("updated").textContent =
 }
 
 loadData();
+setInterval(loadData, DATA_POLL_MS);
 </script>
 </body>
 </html>

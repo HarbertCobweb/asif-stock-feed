@@ -127,14 +127,28 @@ const STOCKS_JSON_FILE = path.join(
   "stocks.json"
 );
 
-const BATCH_SIZE = 5;
+const BATCH_SIZE = 8;
 const RATE_LIMIT_BUFFER_MS = 5 * 1000;
 const MAX_BATCH_RETRIES = 2;
 
 const MIN_REFRESH_INTERVAL_MS =
   8 * 60 * 1000;
 
+// Automatic market refresh schedule. The paid Render web service stays
+// running, so it can manage its own refresh cadence without a Render Cron Job.
+const AUTO_REFRESH_ENABLED =
+  String(process.env.AUTO_REFRESH_ENABLED ?? "true").trim().toLowerCase() !== "false";
+
+const AUTO_REFRESH_INTERVAL_MINUTES = 10;
+const AUTO_REFRESH_START_MINUTES = 9 * 60 + 30; // 9:30 AM Eastern
+const AUTO_REFRESH_END_MINUTES = 16 * 60;       // 4:00 PM Eastern
+const SCHEDULER_CHECK_MS = 15 * 1000;
+
 let activeRefreshPromise = null;
+let lastAutomaticRefreshSlot = null;
+let lastAutomaticRefreshStartedAt = null;
+let lastAutomaticRefreshCompletedAt = null;
+let lastAutomaticRefreshError = null;
 
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, {
@@ -391,6 +405,71 @@ function isWeekdayEastern() {
     "Sat",
     "Sun"
   ].includes(weekday);
+}
+
+function getAutomaticRefreshSlot(date = new Date()) {
+  const eastern = getEasternTimeParts(date);
+
+  if (["Sat", "Sun"].includes(eastern.weekday)) {
+    return null;
+  }
+
+  const minutesSinceMidnight =
+    eastern.hour * 60 + eastern.minute;
+
+  if (
+    minutesSinceMidnight < AUTO_REFRESH_START_MINUTES ||
+    minutesSinceMidnight > AUTO_REFRESH_END_MINUTES
+  ) {
+    return null;
+  }
+
+  if (eastern.minute % AUTO_REFRESH_INTERVAL_MINUTES !== 0) {
+    return null;
+  }
+
+  const pad = value => String(value).padStart(2, "0");
+
+  return (
+    `${eastern.year}-${pad(eastern.month)}-${pad(eastern.day)} ` +
+    `${pad(eastern.hour)}:${pad(eastern.minute)}`
+  );
+}
+
+async function runAutomaticRefreshIfDue() {
+  if (!AUTO_REFRESH_ENABLED) {
+    return;
+  }
+
+  const slot = getAutomaticRefreshSlot();
+
+  if (!slot || slot === lastAutomaticRefreshSlot) {
+    return;
+  }
+
+  // Claim the slot immediately so the 15-second scheduler check cannot
+  // start the same 10-minute refresh more than once.
+  lastAutomaticRefreshSlot = slot;
+  lastAutomaticRefreshStartedAt = new Date().toISOString();
+  lastAutomaticRefreshError = null;
+
+  console.log(`Automatic 10-minute stock refresh starting for ${slot} Eastern.`);
+
+  try {
+    const payload = await getOrCreateRefreshPromise();
+    const staticPublish = await publishCurrentPayload(payload);
+
+    lastAutomaticRefreshCompletedAt = new Date().toISOString();
+
+    console.log(
+      `Automatic refresh completed for ${slot} Eastern. ` +
+      `Updated ${payload.successfulCount}/${payload.count} holdings. ` +
+      `GitHub publish: ${staticPublish?.published ? "updated" : "no change"}.`
+    );
+  } catch (error) {
+    lastAutomaticRefreshError = error.message;
+    console.error(`Automatic refresh failed for ${slot} Eastern:`, error);
+  }
 }
 
 function isMarketRefreshWindow() {
@@ -1455,6 +1534,17 @@ app.get(
       staticPublishing:
         getGitHubPublishConfig(),
 
+      automaticRefresh: {
+        enabled: AUTO_REFRESH_ENABLED,
+        schedule: "Every 10 minutes, 9:30 AM–4:00 PM Eastern, Monday–Friday",
+        intervalMinutes: AUTO_REFRESH_INTERVAL_MINUTES,
+        currentSlot: getAutomaticRefreshSlot(),
+        lastSlot: lastAutomaticRefreshSlot,
+        lastStartedAt: lastAutomaticRefreshStartedAt,
+        lastCompletedAt: lastAutomaticRefreshCompletedAt,
+        lastError: lastAutomaticRefreshError
+      },
+
       symbols:
         HOLDINGS.map(
           holding => holding.symbol
@@ -1473,7 +1563,7 @@ app.get(
         Boolean(activeRefreshPromise),
 
       expectedRefreshDurationSeconds:
-        195,
+        135,
 
       minimumRefreshIntervalMinutes:
         MIN_REFRESH_INTERVAL_MS /
@@ -1543,5 +1633,15 @@ app.listen(
       `Current Eastern time: ` +
       getEasternDisplayTime()
     );
+
+    console.log(
+      `Automatic refresh: ${AUTO_REFRESH_ENABLED ? "enabled" : "disabled"}. ` +
+      `Every ${AUTO_REFRESH_INTERVAL_MINUTES} minutes from 9:30 AM through 4:00 PM Eastern, weekdays.`
+    );
+
+    // Check immediately after startup, then every 15 seconds. The slot guard
+    // ensures each 10-minute Eastern-time slot runs at most once.
+    runAutomaticRefreshIfDue();
+    setInterval(runAutomaticRefreshIfDue, SCHEDULER_CHECK_MS);
   }
 );

@@ -64,3 +64,23 @@ npm run publish-static
 ```
 
 That standalone command additionally requires `SOURCE_JSON_URL` and `SOURCE_XML_URL`. Normal production refreshes do not require those variables anymore.
+
+
+## Automatic 10-minute refresh (Render Starter)
+
+The web service now schedules its own market refreshes. A separate Render Cron Job is no longer required.
+
+- Runs Monday through Friday
+- Starts at 9:30 AM Eastern
+- Refreshes every 10 minutes
+- Final scheduled refresh is 4:00 PM Eastern
+- 40 refreshes per weekday
+- 17 holdings per refresh = about 680 Twelve Data credits per trading day
+- Uses `America/New_York` internally so daylight saving time is handled automatically
+- Publishes the refreshed JSON/XML feeds to GitHub after each successful refresh
+
+Set `AUTO_REFRESH_ENABLED=false` in Render only if you need to temporarily disable the internal scheduler. It defaults to enabled.
+
+After deploying this version, disable the old Render Cron Job that calls `/api/refresh`; otherwise it creates unnecessary extra refresh attempts.
+
+The GitHub Pages display checks the published JSON once per minute and displays the update time in Central Time using `America/Chicago`.

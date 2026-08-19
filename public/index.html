@@ -349,7 +349,7 @@ const TRANSITION_SECONDS = 2.5;
  * It only reloads your cached file.
  */
 const DISPLAY_REFRESH_MS =
-  2 * 60 * 1000;
+  60 * 1000;
 
 let pagingTimer = null;
 
@@ -494,7 +494,7 @@ function formatUpdatedTime(value){
       "en-US",
       {
         timeZone:
-          "America/New_York",
+          "America/Chicago",
 
         hour:
           "numeric",
@@ -706,7 +706,7 @@ loadData();
 
 /*
  * Check for an updated cached feed
- * every two minutes.
+ * every minute.
  */
 setInterval(
   loadData,

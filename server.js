@@ -141,7 +141,8 @@ const AUTO_REFRESH_ENABLED =
 
 const AUTO_REFRESH_INTERVAL_MINUTES = 10;
 const AUTO_REFRESH_START_MINUTES = 9 * 60 + 30; // 9:30 AM Eastern
-const AUTO_REFRESH_END_MINUTES = 16 * 60;       // 4:00 PM Eastern
+const AUTO_REFRESH_END_MINUTES = 16 * 60;       // regular 10-minute cadence ends at 4:00 PM Eastern
+const FINAL_CLOSE_REFRESH_MINUTES = 16 * 60 + 5;  // one final 4:05 PM Eastern refresh
 const SCHEDULER_CHECK_MS = 15 * 1000;
 
 let activeRefreshPromise = null;
@@ -417,14 +418,15 @@ function getAutomaticRefreshSlot(date = new Date()) {
   const minutesSinceMidnight =
     eastern.hour * 60 + eastern.minute;
 
-  if (
-    minutesSinceMidnight < AUTO_REFRESH_START_MINUTES ||
-    minutesSinceMidnight > AUTO_REFRESH_END_MINUTES
-  ) {
-    return null;
-  }
+  const isRegularTenMinuteSlot =
+    minutesSinceMidnight >= AUTO_REFRESH_START_MINUTES &&
+    minutesSinceMidnight <= AUTO_REFRESH_END_MINUTES &&
+    eastern.minute % AUTO_REFRESH_INTERVAL_MINUTES === 0;
 
-  if (eastern.minute % AUTO_REFRESH_INTERVAL_MINUTES !== 0) {
+  const isFinalCloseSlot =
+    minutesSinceMidnight === FINAL_CLOSE_REFRESH_MINUTES;
+
+  if (!isRegularTenMinuteSlot && !isFinalCloseSlot) {
     return null;
   }
 
@@ -453,7 +455,7 @@ async function runAutomaticRefreshIfDue() {
   lastAutomaticRefreshStartedAt = new Date().toISOString();
   lastAutomaticRefreshError = null;
 
-  console.log(`Automatic 10-minute stock refresh starting for ${slot} Eastern.`);
+  console.log(`Automatic stock refresh starting for ${slot} Eastern.`);
 
   try {
     const payload = await getOrCreateRefreshPromise();
@@ -1536,7 +1538,7 @@ app.get(
 
       automaticRefresh: {
         enabled: AUTO_REFRESH_ENABLED,
-        schedule: "Every 10 minutes, 9:30 AM–4:00 PM Eastern, Monday–Friday",
+        schedule: "Every 10 minutes, 9:30 AM–4:00 PM Eastern, plus a final 4:05 PM close refresh, Monday–Friday",
         intervalMinutes: AUTO_REFRESH_INTERVAL_MINUTES,
         currentSlot: getAutomaticRefreshSlot(),
         lastSlot: lastAutomaticRefreshSlot,
@@ -1636,7 +1638,7 @@ app.listen(
 
     console.log(
       `Automatic refresh: ${AUTO_REFRESH_ENABLED ? "enabled" : "disabled"}. ` +
-      `Every ${AUTO_REFRESH_INTERVAL_MINUTES} minutes from 9:30 AM through 4:00 PM Eastern, weekdays.`
+      `Every ${AUTO_REFRESH_INTERVAL_MINUTES} minutes from 9:30 AM through 4:00 PM Eastern, plus a final 4:05 PM close refresh, weekdays.`
     );
 
     // Check immediately after startup, then every 15 seconds. The slot guard

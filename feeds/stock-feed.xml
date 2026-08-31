@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
-  <updatedAt>2026-08-31T13:32:11.542Z</updatedAt>
-  <updatedAtEastern>Aug 31, 2026, 9:32:11 AM EDT</updatedAtEastern>
+  <updatedAt>2026-08-31T13:42:05.746Z</updatedAt>
+  <updatedAtEastern>Aug 31, 2026, 9:42:05 AM EDT</updatedAtEastern>
   <source>Twelve Data — Quote</source>
   <mode>near-real-time</mode>
   <count>17</count>
@@ -138,28 +138,28 @@
     <name>Sprott Physical Gold Trust</name>
     <sector>Precious Metals Fund</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/phys.png</image>
-    <price>33.8</price>
-    <open>34.95</open>
-    <previousClose>35</previousClose>
-    <volume>7617900</volume>
-    <change>-1.2</change>
-    <changePct>-3.42857</changePct>
-    <quoteDate>2026-08-28</quoteDate>
-    <quoteTimestamp>2026-08-28T13:30:00.000Z</quoteTimestamp>
+    <price>33.625</price>
+    <open>33.6982</open>
+    <previousClose>33.8</previousClose>
+    <volume>373913</volume>
+    <change>-0.17499924</change>
+    <changePct>-0.51774923</changePct>
+    <quoteDate>2026-08-31</quoteDate>
+    <quoteTimestamp>2026-08-31T13:30:00.000Z</quoteTimestamp>
   </item>
   <item>
     <symbol>PSLV</symbol>
     <name>Sprott Physical Silver Trust</name>
     <sector>Precious Metals Fund</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/pslv.png</image>
-    <price>21.84</price>
-    <open>23.35</open>
-    <previousClose>22.9</previousClose>
-    <volume>14447900</volume>
-    <change>-1.059999</change>
-    <changePct>-4.62882</changePct>
-    <quoteDate>2026-08-28</quoteDate>
-    <quoteTimestamp>2026-08-28T13:30:00.000Z</quoteTimestamp>
+    <price>21.9</price>
+    <open>21.9118</open>
+    <previousClose>21.84</previousClose>
+    <volume>140688</volume>
+    <change>0.059999466</change>
+    <changePct>0.27472283</changePct>
+    <quoteDate>2026-08-31</quoteDate>
+    <quoteTimestamp>2026-08-31T13:30:00.000Z</quoteTimestamp>
   </item>
   <item>
     <symbol>WM</symbol>

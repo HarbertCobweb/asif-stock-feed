@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
-  <updatedAt>2026-10-09T14:02:05.219Z</updatedAt>
-  <updatedAtEastern>Oct 9, 2026, 10:02:05 AM EDT</updatedAtEastern>
+  <updatedAt>2026-10-09T14:12:05.212Z</updatedAt>
+  <updatedAtEastern>Oct 9, 2026, 10:12:05 AM EDT</updatedAtEastern>
   <source>Twelve Data — Quote</source>
   <mode>near-real-time</mode>
   <count>17</count>
@@ -12,12 +12,12 @@
     <name>Amazon</name>
     <sector>Consumer Discretionary</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/amzn.png</image>
-    <price>258.505</price>
+    <price>258.765</price>
     <open>256.215</open>
     <previousClose>254.059998</previousClose>
-    <volume>157212</volume>
-    <change>4.445</change>
-    <changePct>1.74959</changePct>
+    <volume>210597</volume>
+    <change>4.705</change>
+    <changePct>1.85193</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -26,12 +26,12 @@
     <name>Barrick Mining</name>
     <sector>Materials</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/gold.png</image>
-    <price>41.145</price>
+    <price>41.015</price>
     <open>40.66</open>
     <previousClose>39.99</previousClose>
-    <volume>76451</volume>
-    <change>1.155</change>
-    <changePct>2.88822</changePct>
+    <volume>116130</volume>
+    <change>1.024998</change>
+    <changePct>2.56314</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -40,12 +40,12 @@
     <name>Costco Wholesale</name>
     <sector>Consumer Staples</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/cost.png</image>
-    <price>945.075</price>
+    <price>944.76</price>
     <open>945.49</open>
     <previousClose>947.91998</previousClose>
-    <volume>4084</volume>
-    <change>-2.84498</change>
-    <changePct>-0.30012902</changePct>
+    <volume>6758</volume>
+    <change>-3.15998</change>
+    <changePct>-0.33335967</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -54,12 +54,12 @@
     <name>Deere &amp; Company</name>
     <sector>Industrials</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/de.png</image>
-    <price>655.2</price>
+    <price>654.37</price>
     <open>650.96</open>
     <previousClose>652.58002</previousClose>
-    <volume>1915</volume>
-    <change>2.61998</change>
-    <changePct>0.40148071</changePct>
+    <volume>2647</volume>
+    <change>1.78998</change>
+    <changePct>0.27429325</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -68,12 +68,12 @@
     <name>Eli Lilly</name>
     <sector>Health Care</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/lly.png</image>
-    <price>1168.61</price>
+    <price>1169.54</price>
     <open>1154.995</open>
     <previousClose>1169.59998</previousClose>
-    <volume>6151</volume>
-    <change>-0.98997559</change>
-    <changePct>-0.084642237</changePct>
+    <volume>7713</volume>
+    <change>-0.059975586</change>
+    <changePct>-0.0051278717</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -82,12 +82,12 @@
     <name>EQT Corporation</name>
     <sector>Energy</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/eqt.png</image>
-    <price>53.32</price>
+    <price>53.26</price>
     <open>52.73</open>
     <previousClose>52.94</previousClose>
-    <volume>22073</volume>
-    <change>0.38000137</change>
-    <changePct>0.71779634</changePct>
+    <volume>31404</volume>
+    <change>0.32000137</change>
+    <changePct>0.60446049</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -96,12 +96,12 @@
     <name>Linde</name>
     <sector>Materials</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/lin.png</image>
-    <price>483.73</price>
+    <price>484.305</price>
     <open>479.885</open>
     <previousClose>481.70001</previousClose>
-    <volume>4746</volume>
-    <change>2.029988</change>
-    <changePct>0.42142158</changePct>
+    <volume>7676</volume>
+    <change>2.60499</change>
+    <changePct>0.54079048</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -110,12 +110,12 @@
     <name>Microsoft</name>
     <sector>Information Technology</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/msft.png</image>
-    <price>528.48</price>
+    <price>528.87</price>
     <open>528.18</open>
     <previousClose>522.60999</previousClose>
-    <volume>79121</volume>
-    <change>5.87001</change>
-    <changePct>1.12321</changePct>
+    <volume>93681</volume>
+    <change>6.26001</change>
+    <changePct>1.19784</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -124,12 +124,12 @@
     <name>Oracle</name>
     <sector>Information Technology</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/orcl.png</image>
-    <price>138.865</price>
+    <price>140.39</price>
     <open>136.93</open>
     <previousClose>135.69</previousClose>
-    <volume>177076</volume>
-    <change>3.175</change>
-    <changePct>2.33989</changePct>
+    <volume>206722</volume>
+    <change>4.7</change>
+    <changePct>3.46378</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -138,12 +138,12 @@
     <name>Sprott Physical Gold Trust</name>
     <sector>Precious Metals Fund</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/phys.png</image>
-    <price>31.685</price>
+    <price>31.665</price>
     <open>31.62</open>
     <previousClose>31.2</previousClose>
-    <volume>498887</volume>
-    <change>0.4849987</change>
-    <changePct>1.55448</changePct>
+    <volume>565120</volume>
+    <change>0.46500015</change>
+    <changePct>1.49039</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -152,12 +152,12 @@
     <name>Sprott Physical Silver Trust</name>
     <sector>Precious Metals Fund</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/pslv.png</image>
-    <price>20.08</price>
+    <price>20.014999</price>
     <open>19.93</open>
     <previousClose>19.4</previousClose>
-    <volume>1135768</volume>
-    <change>0.68000031</change>
-    <changePct>3.50516</changePct>
+    <volume>1213317</volume>
+    <change>0.61499977</change>
+    <changePct>3.1701</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -166,12 +166,12 @@
     <name>Waste Management</name>
     <sector>Industrials</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/wm.png</image>
-    <price>210.14</price>
+    <price>209.355</price>
     <open>209.43</open>
     <previousClose>210.10001</previousClose>
-    <volume>4104</volume>
-    <change>0.039993896</change>
-    <changePct>0.019035647</changePct>
+    <volume>5366</volume>
+    <change>-0.7450061</change>
+    <changePct>-0.35459595</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -180,12 +180,12 @@
     <name>Uber Technologies</name>
     <sector>Industrials</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/uber.png</image>
-    <price>71.485</price>
+    <price>71.725</price>
     <open>70.25</open>
     <previousClose>70.24</previousClose>
-    <volume>222297</volume>
-    <change>1.245</change>
-    <changePct>1.7725</changePct>
+    <volume>247338</volume>
+    <change>1.485</change>
+    <changePct>2.11418</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -208,12 +208,12 @@
     <name>Broadcom</name>
     <sector>Information Technology</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/avgo.png</image>
-    <price>363.81</price>
+    <price>363.415</price>
     <open>365.59</open>
     <previousClose>360.14001</previousClose>
-    <volume>86884</volume>
-    <change>3.66999</change>
-    <changePct>1.019044</changePct>
+    <volume>110892</volume>
+    <change>3.27499</change>
+    <changePct>0.90936447</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -222,12 +222,12 @@
     <name>HCA Healthcare</name>
     <sector>Health Care</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/hca.png</image>
-    <price>446.32</price>
+    <price>446.42</price>
     <open>445.01</open>
     <previousClose>445.01001</previousClose>
-    <volume>2178</volume>
-    <change>1.30999</change>
-    <changePct>0.29437321</changePct>
+    <volume>3069</volume>
+    <change>1.40999</change>
+    <changePct>0.31684461</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>
@@ -236,12 +236,12 @@
     <name>PepsiCo</name>
     <sector>Consumer Staples</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/pep.png</image>
-    <price>126.01</price>
+    <price>125.65</price>
     <open>126.865</open>
     <previousClose>128.34</previousClose>
-    <volume>46769</volume>
-    <change>-2.33</change>
-    <changePct>-1.81549</changePct>
+    <volume>65174</volume>
+    <change>-2.69</change>
+    <changePct>-2.095992</changePct>
     <quoteDate>2026-10-09</quoteDate>
     <quoteTimestamp>2026-10-09T13:30:00.000Z</quoteTimestamp>
   </item>

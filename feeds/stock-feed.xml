@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <items>
-  <updatedAt>2026-11-27T19:12:05.233Z</updatedAt>
-  <updatedAtEastern>Nov 27, 2026, 2:12:05 PM EST</updatedAtEastern>
+  <updatedAt>2026-11-27T19:22:05.213Z</updatedAt>
+  <updatedAtEastern>Nov 27, 2026, 2:22:05 PM EST</updatedAtEastern>
   <source>Twelve Data — Quote</source>
   <mode>near-real-time</mode>
   <count>17</count>
@@ -12,12 +12,12 @@
     <name>Amazon</name>
     <sector>Consumer Discretionary</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/amzn.png</image>
-    <price>254.12</price>
+    <price>254.24001</price>
     <open>250.45</open>
     <previousClose>244.42999</previousClose>
-    <volume>27148968</volume>
-    <change>9.69</change>
-    <changePct>3.96433</changePct>
+    <volume>47998909</volume>
+    <change>9.81001</change>
+    <changePct>4.013424</changePct>
     <quoteDate>2026-11-27</quoteDate>
     <quoteTimestamp>2026-11-27T14:30:00.000Z</quoteTimestamp>
   </item>
@@ -40,12 +40,12 @@
     <name>Costco Wholesale</name>
     <sector>Consumer Staples</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/cost.png</image>
-    <price>1097.81006</price>
+    <price>1098.43005</price>
     <open>1086.035034</open>
     <previousClose>1086.81006</previousClose>
-    <volume>1362828</volume>
-    <change>11</change>
-    <changePct>1.012136</changePct>
+    <volume>2121572</volume>
+    <change>11.62</change>
+    <changePct>1.069184</changePct>
     <quoteDate>2026-11-27</quoteDate>
     <quoteTimestamp>2026-11-27T14:30:00.000Z</quoteTimestamp>
   </item>
@@ -96,12 +96,12 @@
     <name>Linde</name>
     <sector>Materials</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/lin.png</image>
-    <price>532.60999</price>
+    <price>532.78003</price>
     <open>525.47998</open>
     <previousClose>524.60999</previousClose>
-    <volume>1067732</volume>
-    <change>8</change>
-    <changePct>1.52494</changePct>
+    <volume>1783194</volume>
+    <change>8.17004</change>
+    <changePct>1.55736</changePct>
     <quoteDate>2026-11-27</quoteDate>
     <quoteTimestamp>2026-11-27T14:30:00.000Z</quoteTimestamp>
   </item>
@@ -110,12 +110,12 @@
     <name>Microsoft</name>
     <sector>Information Technology</sector>
     <image>https://harbert.auburn.edu/binaries/images/centers/investment-center/msft.png</image>
-    <price>492.85001</price>
+    <price>493.38</price>
     <open>499.48499</open>
     <previousClose>489.92999</previousClose>
-    <volume>12423912</volume>
-    <change>2.92001</change>
-    <changePct>0.59600626</changePct>
+    <volume>23599207</volume>
+    <change>3.45001</change>
+    <changePct>0.70418473</changePct>
     <quoteDate>2026-11-27</quoteDate>
     <quoteTimestamp>2026-11-27T14:30:00.000Z</quoteTimestamp>
   </item>
